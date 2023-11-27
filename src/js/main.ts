@@ -1,6 +1,11 @@
-import "./scss/main.scss"
+import { imageGallery } from "@components/imageGallery/"
+import "../scss/main.scss"
 
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <h1>Hello Vite!</h1>
-  <a href="https://vitejs.dev/guide/features.html" target="_blank">Documentation</a>
-`
+/**
+ * Initialize the app
+ */
+const init = (): void => {
+  imageGallery()
+}
+
+init()

@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -6,8 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + TS</title>
   </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+  <body class="bg-grey">
+    <main>
+      <section class="container bg-grey-30 py-md my-xxl border-rounded">
+        <div class="img-main-screen img-wrapper ratio-1x1"></div>
+
+        <div class="d-flex justify-content-between align-items-center gap-md">
+          <button class="img-main-screen-btn btn btn--clear" data-dir="prev">
+            Prev
+          </button>
+          <div class="current-img-number"></div>
+          <button class="img-main-screen-btn btn--clear btn" data-dir="next">
+            Next
+          </button>
+        </div>
+
+        <div class="img-thumbnails"></div>
+      </section>
+    </main>
+    <script type="module" src="/src/js/main.ts"></script>
   </body>
 </html>

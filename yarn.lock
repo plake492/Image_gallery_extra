@@ -212,6 +212,13 @@ braces@~3.0.2:
   optionalDependencies:
     fsevents "~2.3.2"
 
+debug@^4.1.1:
+  version "4.3.4"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
+  integrity sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
+  dependencies:
+    ms "2.1.2"
+
 esbuild@^0.19.3:
   version "0.19.8"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.19.8.tgz#ad05b72281d84483fa6b5345bd246c27a207b8f1"
@@ -259,6 +266,11 @@ glob-parent@~5.1.2:
   dependencies:
     is-glob "^4.0.1"
 
+globrex@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/globrex/-/globrex-0.1.2.tgz#dd5d9ec826232730cd6793a5e33a9302985e6098"
+  integrity sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==
+
 immutable@^4.0.0:
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-4.3.4.tgz#2e07b33837b4bb7662f288c244d1ced1ef65a78f"
@@ -287,6 +299,16 @@ is-number@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/is-number/-/is-number-7.0.0.tgz#7535345b896734d5f80c4d06c50955527a14f12b"
   integrity sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==
+
+module-alias@^2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/module-alias/-/module-alias-2.2.3.tgz#ec2e85c68973bda6ab71ce7c93b763ec96053221"
+  integrity sha512-23g5BFj4zdQL/b6tor7Ji+QY4pEfNH784BMslY9Qb0UnJWRAt+lQGLYmRaM0KDBwIG23ffEBELhZDP2rhi9f/Q==
+
+ms@2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
+  integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
 nanoid@^3.3.6:
   version "3.3.7"
@@ -364,10 +386,24 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
+tsconfck@^2.1.0:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/tsconfck/-/tsconfck-2.1.2.tgz#f667035874fa41d908c1fe4d765345fcb1df6e35"
+  integrity sha512-ghqN1b0puy3MhhviwO2kGF8SeMDNhEbnKxjK7h6+fvY9JAxqvXi8y5NAHSQv687OVboS2uZIByzGd45/YxrRHg==
+
 typescript@^5.2.2:
   version "5.3.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.3.2.tgz#00d1c7c1c46928c5845c1ee8d0cc2791031d4c43"
   integrity sha512-6l+RyNy7oAHDfxC4FzSJcz9vnjTKxrLpDG5M2Vu4SHRVNg6xzqZp6LYSR9zjqQTu8DU/f5xwxUdADOkbrIX2gQ==
+
+vite-tsconfig-paths@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/vite-tsconfig-paths/-/vite-tsconfig-paths-4.2.1.tgz#e53b89096b91d31a6d1e26f75999ea8c336a89ed"
+  integrity sha512-GNUI6ZgPqT3oervkvzU+qtys83+75N/OuDaQl7HmOqFTb0pjZsuARrRipsyJhJ3enqV8beI1xhGbToR4o78nSQ==
+  dependencies:
+    debug "^4.1.1"
+    globrex "^0.1.2"
+    tsconfck "^2.1.0"
 
 vite@^5.0.0:
   version "5.0.2"
