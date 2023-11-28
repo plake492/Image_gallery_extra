@@ -1,7 +1,38 @@
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600&family=Comfortaa:wght@300;400;500;600&display=swap");
 @import "../../node_modules/@plake492/css_utilities/src/index.scss";
 
+@import "./buttons";
+@import "./grid-bg";
 @import "./img-gallery";
 
+:root {
+  --primary-font: "Comfortaa", sans-serif;
+  --secondary-font: "Chakra Petch", sans-serif;
+}
+
 body {
-  background-color: #333;
+  background-color: #ddd;
+  position: relative;
+  background: conic-gradient(
+    #333,
+    rgb(84, 5, 106),
+    #222,
+    #330355,
+    #000000,
+    rgb(84, 5, 106),
+    rgb(20, 24, 20),
+    #2c0448,
+    #333
+  );
+}
+
+section {
+  backdrop-filter: blur(4px);
+  background: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.2) 0%,
+
+    rgba(66, 23, 186, 0.6) 75%
+  );
+  overflow: hidden;
 }

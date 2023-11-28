@@ -14,6 +14,7 @@ interface GalleryState {
   imgThumbElements: HTMLImageElement[]
   imgThumbAmount: number
   activeThumb: HTMLDivElement | null
+  isAnmiating: boolean
 }
 
 // *** DOM ELEMENTS *** //
@@ -40,6 +41,7 @@ export const imageGallery = () => {
       imgThumbElements: [],
       imgThumbAmount: imageList.length,
       activeThumb: null,
+      isAnmiating: false,
     },
     (_, key, value) => {
       if (key === "allImagesLoaded" && value === true) turnOffOpacity()
@@ -84,8 +86,22 @@ export const imageGallery = () => {
     ;(currentThumb?.parentNode as HTMLDivElement).classList.add("active")
 
     const { src, alt } = imageList[state.currentImageIndex]
-    imgMainScreenEl!.innerHTML = ""
-    imgMainScreenEl!.appendChild(generateMainImg(constructImgPath(src), alt))
+    imgMainScreenEl!.style.opacity = "0"
+    imgMainScreenEl!.style.transform = "translateX(100px)"
+
+    setTimeout(() => {
+      imgMainScreenEl!.innerHTML = ""
+
+      const newImg = generateMainImg(constructImgPath(src), alt)
+
+      imgMainScreenEl!.appendChild(newImg)
+
+      newImg.onload = () => {
+        imgMainScreenEl!.style.opacity = "1"
+        imgMainScreenEl!.style.transform = "translateX(0px)"
+        state.isAnmiating = false
+      }
+    }, 500)
   }
   // * ====================================== * //
   // * ====================================== * //
@@ -96,6 +112,9 @@ export const imageGallery = () => {
    * @param e click event
    */
   const handleThumbnailClick = (e: Event): void => {
+    if (state.isAnmiating) return
+    state.isAnmiating = true
+
     const target = e.target as HTMLImageElement
     const imgIndex = target.dataset.thumbIndex
 
@@ -109,6 +128,9 @@ export const imageGallery = () => {
    * @param e click event
    */
   const handleMainScreenBtnClick = (e: Event): void => {
+    if (state.isAnmiating) return
+    state.isAnmiating = true
+
     const target = e.target as HTMLButtonElement
     const dir = target.dataset.dir
 
@@ -155,7 +177,15 @@ export const imageGallery = () => {
   // * ====================================== * //
 
   // Set first image
-  const firstImg = generateMainImg(startingImage, startingImageAlt)
+  const firstImg: HTMLImageElement = generateMainImg(
+    startingImage,
+    startingImageAlt,
+  )
+  firstImg.style.opacity = "0"
+  firstImg.style.transition = "opacity 1s ease-in-out"
   imgMainScreenEl!.appendChild(firstImg)
+  firstImg.onload = () => {
+    firstImg.style.opacity = "1"
+  }
   setCurrentImageNumber()
 }
