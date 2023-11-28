@@ -16,6 +16,14 @@ export const imageList: ImgRef[] = [
   { src: "m", alt: "ALT_TEXT_HERE" },
   { src: "n", alt: "ALT_TEXT_HERE" },
   { src: "o", alt: "ALT_TEXT_HERE" },
+  { src: "p", alt: "ALT_TEXT_HERE" },
+  { src: "q", alt: "ALT_TEXT_HERE" },
+  { src: "r", alt: "ALT_TEXT_HERE" },
+  { src: "s", alt: "ALT_TEXT_HERE" },
+  { src: "t", alt: "ALT_TEXT_HERE" },
+  { src: "u", alt: "ALT_TEXT_HERE" },
+  { src: "v", alt: "ALT_TEXT_HERE" },
+  { src: "w", alt: "ALT_TEXT_HERE" },
 ]
 
 export const imagePath: string = "images/"

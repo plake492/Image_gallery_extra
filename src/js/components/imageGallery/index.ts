@@ -14,6 +14,7 @@ interface GalleryState {
   imgThumbElements: HTMLImageElement[]
   imgThumbAmount: number
   activeThumb: HTMLDivElement | null
+  currentMainImgEl: HTMLImageElement | null
   isAnmiating: boolean
 }
 
@@ -41,6 +42,7 @@ export const imageGallery = () => {
       imgThumbElements: [],
       imgThumbAmount: imageList.length,
       activeThumb: null,
+      currentMainImgEl: null,
       isAnmiating: false,
     },
     (_, key, value) => {
@@ -90,9 +92,13 @@ export const imageGallery = () => {
     imgMainScreenEl!.style.transform = "translateX(100px)"
 
     setTimeout(() => {
-      imgMainScreenEl!.innerHTML = ""
+      if (state.currentMainImgEl) {
+        imgMainScreenEl!.removeChild(state.currentMainImgEl)
+      }
 
       const newImg = generateMainImg(constructImgPath(src), alt)
+
+      state.currentMainImgEl = newImg
 
       imgMainScreenEl!.appendChild(newImg)
 
@@ -149,7 +155,6 @@ export const imageGallery = () => {
       }
     }
   }
-
   // * ====================================== * //
   // * ====================================== * //
 
@@ -172,7 +177,6 @@ export const imageGallery = () => {
   imgMainScreenPrevBtnEl.forEach((btn) => {
     btn.addEventListener("click", handleMainScreenBtnClick)
   })
-
   // * ====================================== * //
   // * ====================================== * //
 
@@ -181,6 +185,7 @@ export const imageGallery = () => {
     startingImage,
     startingImageAlt,
   )
+  state.currentMainImgEl = firstImg
   firstImg.style.opacity = "0"
   firstImg.style.transition = "opacity 1s ease-in-out"
   imgMainScreenEl!.appendChild(firstImg)

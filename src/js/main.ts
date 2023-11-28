@@ -1,4 +1,5 @@
 import { imageGallery } from "@components/imageGallery/"
+import { audioPlayer } from "@components/audioPlayer/"
 import "../scss/main.scss"
 
 /**
@@ -6,6 +7,7 @@ import "../scss/main.scss"
  */
 const init = (): void => {
   imageGallery()
+  audioPlayer()
 }
 
 init()
