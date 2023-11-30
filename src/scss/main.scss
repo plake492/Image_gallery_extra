@@ -35,4 +35,9 @@ section {
     rgba(66, 23, 186, 0.6) 75%
   );
   overflow: hidden;
+  margin-bottom: $space-xl;
+}
+
+main {
+  padding: $space-xl 0;
 }

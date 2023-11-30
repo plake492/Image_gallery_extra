@@ -114,7 +114,7 @@
           <div class="line"></div>
         </div>
       </div>
-      <section class="container py-xxl px-xl border-rounded mb-md text-center">
+      <section class="container py-xxl px-xl border-rounded text-center">
         <h1>Image Gallery</h1>
         <p>
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas porro
@@ -127,15 +127,10 @@
         <div class="img-main-screen img-wrapper ratio-1x1">
           <div class="main-img-overlay">
             <div class="img-title">
-              <h3>Title</h3>
+              <h3 id="main-img-title"></h3>
             </div>
             <div class="img-description">
-              <p class="text-sm">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Fuga,
-                nihil nulla reiciendis non cupiditate magni eaque hic
-                consequatur dolore ullam? Amet natus nulla reiciendis voluptatem
-                nisi deleniti aliquid in doloribus!
-              </p>
+              <p id="main-img-description" class="text-sm"></p>
             </div>
           </div>
         </div>
@@ -154,9 +149,25 @@
 
         <div class="img-thumbnails my-xl row-scroll r-6"></div>
       </section>
-      <!-- <div class="border-top border-5 border-black mt-xxl py-xxl">
+      <!-- <div
+        class="border-top border-5 border-grey py-xxl"
+        style="
+          backdrop-filter: blur(4px);
+          background: linear-gradient(
+            330deg,
+            rgb(0 255 0 / 45%),
+            rgb(139 0 119 / 80%)
+          );
+        "
+      >
         <template>
           <style>
+            :host {
+              display: block;
+              --seek-before-width: 0%;
+              --volume-before-width: 100%;
+              --buffered-width: 0%;
+            }
             button {
               padding: 0;
               border: 0;
@@ -167,9 +178,6 @@
               height: 40px;
             }
             #audio-player-container {
-              --seek-before-width: 0%;
-              --volume-before-width: 100%;
-              --buffered-width: 0%;
               position: relative;
               display: grid;
               place-content: center;
@@ -311,7 +319,7 @@
             }
             input[type="range"]::-ms-thumb {
               box-sizing: content-box;
-              border: 1px solid #007db5;
+              border: 1px solid #06ccda;
               height: 15px;
               width: 15px;
               border-radius: 50%;
@@ -323,6 +331,7 @@
               background: #00aeff;
             }
           </style>
+
           <div id="audio-player-container">
             <audio src="" preload="metadata" loop></audio>
             <div
@@ -338,6 +347,11 @@
                 border-radius: 40px;
                 padding: 0 2rem;
                 backdrop-filter: blur(4px);
+                box-shadow: -4px -6px 10px 0px #88f6605c, 4px 6px 8px #ff00b873;
+                border-top: lime 2px solid;
+                border-bottom: #ff00b8 2px solid;
+                border-left: lime 2px solid;
+                border-right: #ff00b8 2px solid;
               "
             >
               <span style="display: flex; align-items: center; gap: 0.25rem">

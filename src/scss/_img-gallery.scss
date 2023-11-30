@@ -1,3 +1,5 @@
+$ease: cubic-bezier(0.51, 0.92, 0.24, 1.03);
+
 .img-thumbnails {
   display: flex;
   flex-wrap: nowrap;
@@ -8,9 +10,13 @@
 
   & > * {
     min-width: 150px;
-    transition: all 0.5s cubic-bezier(0.51, 0.92, 0.24, 1.15);
+    transition: all 0.5s $ease;
     overflow: hidden;
     border-radius: 2px;
+    border-style: solid;
+    border-width: 0px;
+    border-color: lime;
+    transition: border 0.5s $ease;
 
     &:hover {
       img {
@@ -19,29 +25,47 @@
       }
     }
     &.active {
+      border-width: 2px;
+
       img {
         transform: scale(1.1);
-        filter: grayscale(1.6);
       }
     }
   }
 
   img {
     background-color: #000;
-    transition: all 0.3s cubic-bezier(0.51, 0.92, 0.24, 1.15);
+    transition: all 0.3s $ease;
   }
 }
 
 .img-main-screen {
   height: 700px;
   position: relative;
-  transition: all 0.5s cubic-bezier(0.51, 0.92, 0.24, 1.15);
+  transition: all 0.5s $ease;
   border-radius: 4px;
   overflow: hidden;
 
   img {
     object-position: center;
     background-color: #000;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1;
+    transition: transform 0.7s $ease, opacity 0.7s $ease;
+    opacity: 1;
+
+    &.fade-in-forward,
+    &.fade-out-backward {
+      opacity: 0.25;
+      transform: translate(calc(100% + 1rem), 0%);
+    }
+    &.fade-out-forward,
+    &.fade-in-backward {
+      opacity: 0.25;
+      transform: translate(calc(-100% - 1rem), 0%);
+    }
   }
 
   .main-img-overlay {
@@ -57,23 +81,22 @@
     flex-direction: column;
     justify-content: space-between;
     font-weight: 300;
-    transition: all 0.5s cubic-bezier(0.51, 0.92, 0.24, 1.15);
+    transition: all 0.5s $ease;
     opacity: 0;
+    z-index: 2;
 
     .img-title {
       gap: $space-md;
-      background-color: #0005;
+      background-color: #0007;
       width: 100%;
       padding: $space-md;
-      backdrop-filter: blur(4px);
     }
 
     .img-description {
       gap: $space-md;
-      background-color: #0005;
+      background-color: #0007;
       width: 100%;
       padding: $space-sm;
-      backdrop-filter: blur(4px);
     }
   }
 
@@ -82,4 +105,13 @@
       opacity: 1;
     }
   }
+}
+
+.img-hide {
+  opacity: 0;
+  transition: opacity 0.5s linear;
+}
+
+.img-show {
+  opacity: 1;
 }

@@ -22,7 +22,6 @@ export const generateImages = (): HTMLDivElement[] => {
     imgEl.width = 100
     imgEl.height = 100
     imgWrapper.appendChild(imgEl)
-    imgEl.onload = () => console.log("loaded")
     return imgWrapper
   })
 }
@@ -42,6 +41,5 @@ export const generateMainImg = (
   imgEl.alt = imgAlt
   imgEl.width = 100
   imgEl.height = 100
-  imgEl.onload = () => console.log("loaded-big")
   return imgEl
 }
