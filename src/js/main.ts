@@ -5,9 +5,7 @@ import "../scss/main.scss"
 /**
  * Initialize the app
  */
-const init = (): void => {
+;((): void => {
   imageGallery()
   audioPlayer()
-}
-
-init()
+})()

@@ -17,6 +17,7 @@ import {
  * Initialize the image gallery
  */
 export const imageGallery = async (): Promise<void> => {
+  const animationDuration = 350
   // An event queue to handle events that are triggered during animation
   const { runEventQueue, addToEventQueue } = eventQueue(2)
 
@@ -89,8 +90,7 @@ export const imageGallery = async (): Promise<void> => {
       outgoingImg!.classList.add(`fade-out-${nextDir}`)
 
       // Wait for the fade-out animation to finish before removing the element
-      //? 700 is the transition duration applied to the main image class
-      await wait(700)
+      await wait(animationDuration)
 
       imgMainScreenEl!.removeChild(outgoingPicture as Node)
     }
@@ -201,6 +201,16 @@ export const imageGallery = async (): Promise<void> => {
     })
   }
 
+  /**
+   * Set the animation duration css variable
+   */
+  const setAnimationCssVar = () => {
+    imgMainScreenEl!.style.setProperty(
+      "--animation-duration",
+      `${animationDuration}ms`,
+    )
+  }
+
   // * ====================================== * //
   // * ====================================== * //
   // *** EVENT HANDLERS *** //
@@ -289,5 +299,6 @@ export const imageGallery = async (): Promise<void> => {
   // * ====================================== * //
   // *** INIT *** //
 
+  setAnimationCssVar()
   await loadFirstImage()
 }
