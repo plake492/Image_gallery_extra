@@ -49,7 +49,7 @@ export default ({ mode }) => {
               }),
             }),
       }),
-      pluginPurgeCss(),
+      pluginPurgeCss({ variables: true }),
     ],
   })
 }

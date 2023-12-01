@@ -35,7 +35,6 @@ export const imageGallery = async (): Promise<void> => {
     },
     async (_, key, value) => {
       if (key === "allImagesLoaded" && value === true) {
-        turnOffOpacity()
         setCurrentImageNumber()
         highlightActiveThumb()
       }
@@ -169,15 +168,6 @@ export const imageGallery = async (): Promise<void> => {
   }
 
   /**
-   * Turn off the opacity of the thumbnail images
-   */
-  const turnOffOpacity = (): void => {
-    state.imgThumbElements.forEach((imgEl) => {
-      imgEl.style.opacity = "1"
-    })
-  }
-
-  /**
    * Set the current image number text
    */
   const setCurrentImageNumber = (): void => {
@@ -220,14 +210,17 @@ export const imageGallery = async (): Promise<void> => {
    * @param e click event
    */
   const handleThumbnailClick = (e: Event): void => {
+    const target = e.target as HTMLImageElement
+    const imgIndex = target.dataset.thumbIndex
+
+    // Avoid triggering the event if the user clicks on the active thumbnail
+    if (state.currentImageIndex === Number(imgIndex)) return
+
     if (state.isAnmiating) {
       addToEventQueue(handleThumbnailClick, [e])
       return
     }
     state.isAnmiating = true
-
-    const target = e.target as HTMLImageElement
-    const imgIndex = target.dataset.thumbIndex
 
     if (imgIndex) {
       // Updating the current image index will
