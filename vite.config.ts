@@ -49,7 +49,10 @@ export default ({ mode }) => {
               }),
             }),
       }),
-      pluginPurgeCss({ variables: true }),
+      pluginPurgeCss({
+        variables: true,
+        content: ["src/js/customClasses/index.ts"],
+      }),
     ],
   })
 }
