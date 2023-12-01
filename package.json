@@ -11,8 +11,11 @@
   "devDependencies": {
     "module-alias": "^2.2.3",
     "sass": "^1.69.5",
+    "sharp": "^0.33.0",
+    "svgo": "^3.0.5",
     "typescript": "^5.2.2",
     "vite": "^5.0.0",
+    "vite-plugin-image-presets": "^0.3.4",
     "vite-tsconfig-paths": "^4.2.1"
   },
   "dependencies": {

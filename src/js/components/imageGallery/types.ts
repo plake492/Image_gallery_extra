@@ -6,7 +6,7 @@ export interface GalleryState {
   imgThumbElements: HTMLImageElement[]
   imgThumbAmount: number
   activeThumb: HTMLDivElement | null
-  currentMainImgEl: HTMLImageElement | null
+  currentMainImgEl: HTMLPictureElement | null
   isAnmiating: boolean
   nextDir: string
 }

@@ -7,6 +7,12 @@ declare global {
   }
 }
 
+/**
+ * Create a proxy object that will trigger a callback function when state props are updated
+ * @param stateInitial Initial state Object
+ * @param cb
+ * @returns {T} Proxy object
+ */
 export const setState = <T extends object>(
   stateInitial: T,
   cb: (a: T, b: string, c: any) => void,

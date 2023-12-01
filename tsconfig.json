@@ -12,6 +12,12 @@
       "@customTypes*": ["js/types/*"],
       "@utils/*": ["js/utils/*"]
     },
+    "types": ["vite/client"],
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",

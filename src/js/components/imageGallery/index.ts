@@ -1,7 +1,8 @@
-import { imageList, startingImage, startingImageAlt } from "@lib/images"
-import { constructImgPath, generateImages, generateMainImg } from "./helpers"
+import { imageList } from "@lib/images"
+import { generateImages, generateMainImg } from "./helpers"
 import { setState } from "@utils/state"
 import { GalleryState } from "./types"
+import { wait } from "@utils/index"
 import {
   thumbnailWrapperEl,
   imgMainScreenEl,
@@ -14,10 +15,11 @@ import {
 /**
  * Initialize the image gallery
  */
-export const imageGallery = () => {
+export const imageGallery = async () => {
+  // *** STATE *** //
+  // An event queue to handle events that are triggered
   const eventQueue: { func: Function; args: Event[] }[] = []
 
-  // Function state
   const state = setState<GalleryState>(
     {
       currentImageIndex: 0,
@@ -29,21 +31,138 @@ export const imageGallery = () => {
       isAnmiating: false,
       nextDir: "forward",
     },
-    (_, key, value) => {
+    async (_, key, value) => {
       if (key === "allImagesLoaded" && value === true) {
         turnOffOpacity()
-        highlightActiveThumb()
         setCurrentImageNumber()
+        highlightActiveThumb()
       }
       if (key === "currentImageIndex") {
         setCurrentImageNumber()
         highlightActiveThumb()
-        updateMainImg()
+        await updateMainImg()
       }
     },
   )
+  // * ====================================== * //
+  // * ====================================== * //
+  // *** PRIMARY FUNCTIONS *** //
+  /**
+   * Update the main image
+   */
+  const updateMainImg = async () => {
+    const {
+      currentImageIndex,
+      currentMainImgEl: outgoingPicture,
+      nextDir,
+    } = state
+    // Grab new image
+    const { src, alt } = imageList[currentImageIndex]
+    // Generate new image
+    const newPictureEl = await generateMainImg(src, alt)
 
-  // *** FUNCTIONS *** //
+    const newImg = newPictureEl.querySelector("img") as HTMLImageElement
+    // Add the fade-in class to trigger enter animation
+    newImg.classList.add(`fade-in-${nextDir}`)
+    // Append the new image to the DOM
+    imgMainScreenEl!.appendChild(newPictureEl)
+    // Update state
+    state.currentMainImgEl = newPictureEl
+    // Wait for the image to load
+    await newImg.decode()
+
+    // Remove the fade-in class to trigger enter animation
+    newImg.classList.remove(`fade-in-${nextDir}`)
+
+    if (state.currentMainImgEl) {
+      // Trigger the fade-out animation
+      const outgoingImg = outgoingPicture!.querySelector(
+        "img",
+      ) as HTMLImageElement
+
+      outgoingImg!.classList.add(`fade-out-${nextDir}`)
+
+      // Wait for the fade-out animation to finish before removing the element
+      //? 700 is the transition duration applied to the main image class
+      await wait(700)
+
+      imgMainScreenEl!.removeChild(outgoingPicture as Node)
+    }
+
+    state.isAnmiating = false
+
+    // Update the overlay content
+    updateMainImgOverlayText()
+    // Run the event queue
+    runEventQueue()
+  }
+
+  /**
+   * Load the first image
+   */
+  const loadFirstImage = async () => {
+    // Generate the first image
+    const firstPicutre = await generateMainImg(
+      imageList[0].src,
+      imageList[0].alt,
+    )
+
+    const firstImg = firstPicutre.querySelector("img") as HTMLImageElement
+    // Set current main image
+    state.currentMainImgEl = firstPicutre
+
+    firstImg.style.opacity = "0"
+    firstImg.addEventListener("load", () => (firstImg.style.opacity = "1"))
+
+    imgMainScreenEl!.appendChild(firstPicutre)
+    updateMainImgOverlayText()
+  }
+
+  /**
+   * Highlight the active thumbnail
+   */
+  const highlightActiveThumb = (): void => {
+    const currentThumb: HTMLImageElement | undefined =
+      state.imgThumbElements.find(
+        (el) => el.dataset.thumbIndex === String(state.currentImageIndex),
+      )
+
+    if (state.activeThumb) {
+      state.activeThumb!.classList.remove("active")
+    }
+
+    const parentNode = currentThumb?.parentNode as HTMLDivElement
+
+    if (parentNode) {
+      parentNode.classList.add("active")
+      state.activeThumb = currentThumb?.parentNode as HTMLDivElement
+    }
+  }
+
+  /**
+   * Load the thumbnail image
+   * @param imgWrapper the img wrapper element
+   */
+  const generateThumbImg = (imgWrapper: HTMLDivElement) => {
+    const imgEl = imgWrapper.querySelector("img") as HTMLImageElement
+    imgEl.style.opacity = "0"
+
+    imgEl.addEventListener("load", (e) => {
+      imgEl.style.opacity = "1"
+      checkAllImagesLoaded(e)
+    })
+
+    imgEl.onerror = (e) => {
+      console.log("error:::", e)
+    }
+
+    // Set Image elements
+    thumbnailWrapperEl!.appendChild(imgWrapper)
+  }
+
+  // * ====================================== * //
+  // * ====================================== * //
+  // *** UTIL FUNCTIONS *** //
   /**
    * Update the main image overlay text
    */
@@ -85,22 +204,6 @@ export const imageGallery = () => {
   }
 
   /**
-   * Highlight the active thumbnail
-   */
-  const highlightActiveThumb = (): void => {
-    const currentThumb: HTMLImageElement | undefined =
-      state.imgThumbElements.find(
-        (el) => el.dataset.thumbIndex === String(state.currentImageIndex),
-      )
-
-    if (state.activeThumb) {
-      state.activeThumb!.classList.remove("active")
-    }
-    ;(currentThumb?.parentNode as HTMLDivElement).classList.add("active")
-    state.activeThumb = currentThumb?.parentNode as HTMLDivElement
-  }
-
-  /**
    * Run the event queue
    */
   const runEventQueue = (): void => {
@@ -124,79 +227,8 @@ export const imageGallery = () => {
       })
     }
   }
-
-  /**
-   * Update the main image
-   */
-  const updateMainImg = () => {
-    const { currentImageIndex, currentMainImgEl: outgoingImg, nextDir } = state
-    // Grab new image
-    const { src, alt } = imageList[currentImageIndex]
-
-    // Generate new image
-    const newImg = generateMainImg(constructImgPath(src), alt)
-    // Add the fade-in class to trigger enter animation
-    newImg.classList.add(`fade-in-${nextDir}`)
-    // Append the new image to the DOM
-    imgMainScreenEl!.appendChild(newImg)
-    // Update state
-    state.currentMainImgEl = newImg
-
-    // Start animation and remove the outgoing image on new image load
-    newImg.addEventListener("load", () => {
-      updateMainImgOverlayText()
-      // Remove the fade-in class to trigger enter animation
-      newImg.classList.remove(`fade-in-${nextDir}`)
-
-      if (state.currentMainImgEl) {
-        // Trigger the fade-out animation
-        outgoingImg!.classList.add(`fade-out-${nextDir}`)
-
-        setTimeout(() => {
-          imgMainScreenEl!.removeChild(outgoingImg as Node)
-          state.isAnmiating = false
-          runEventQueue()
-        }, 1000)
-      } else {
-        // make sure the animation state is set to false
-        state.isAnmiating = false
-      }
-    })
-  }
-
-  /**
-   * Load the first image
-   */
-  const loadFirstImage = () => {
-    // Set first image
-    const firstImg: HTMLImageElement = generateMainImg(
-      startingImage,
-      startingImageAlt,
-    )
-    // Set current main image
-    state.currentMainImgEl = firstImg
-
-    firstImg.style.opacity = "0"
-    firstImg.addEventListener("load", () => (firstImg.style.opacity = "1"))
-    imgMainScreenEl!.appendChild(firstImg)
-    updateMainImgOverlayText()
-  }
-
-  /**
-   * Load the thumbnail image
-   * @param imgWrapper the img wrapper element
-   */
-  const generateThumbImg = (imgWrapper: HTMLDivElement) => {
-    const imgEl = imgWrapper.childNodes[0] as HTMLImageElement
-    imgEl.addEventListener("load", checkAllImagesLoaded)
-    imgEl.style.opacity = "0"
-
-    // Set Image elements
-    thumbnailWrapperEl!.appendChild(imgWrapper)
-  }
   // * ====================================== * //
   // * ====================================== * //
-
   // *** EVENT HANDLERS *** //
   /**
    * Handle the click event on the thumbnail
@@ -229,7 +261,6 @@ export const imageGallery = () => {
   const handleMainScreenBtnClick = (e: Event): void => {
     if (state.isAnmiating) {
       addToEventQueue(handleMainScreenBtnClick, [e])
-
       return
     }
     state.isAnmiating = true
@@ -258,10 +289,9 @@ export const imageGallery = () => {
   }
   // * ====================================== * //
   // * ====================================== * //
-
   // *** REGISTER EVENTS LISTENERS *** //
   // Get image elements
-  const imgThumbnailEls: HTMLDivElement[] = generateImages()
+  const imgThumbnailEls: HTMLDivElement[] = await generateImages()
 
   imgThumbnailEls.forEach((imgWrapper: HTMLDivElement) => {
     generateThumbImg(imgWrapper)
@@ -275,6 +305,7 @@ export const imageGallery = () => {
   )
   // * ====================================== * //
   // * ====================================== * //
+  // *** INIT *** //
 
-  loadFirstImage()
+  await loadFirstImage()
 }

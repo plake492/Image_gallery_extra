@@ -1,45 +1,88 @@
 import { ImgRef } from "@customTypes/types"
-import { imageList, imagePath, imageType } from "@lib/images"
+import { imageList, imageType } from "@lib/images"
 
-export const constructImgPath = (src: string): string =>
-  `${imagePath}${src}.${imageType}`
+const createPictureEl = (img: any, query?: string | null | undefined) => {
+  const pictureEl = document.createElement("picture")
+
+  img.forEach((imgSrc: any) => {
+    const sourceEl = document.createElement("source")
+
+    for (const [key, value] of Object.entries(imgSrc)) {
+      sourceEl.setAttribute(key, value as string)
+    }
+    if (query) {
+      sourceEl.media = `(max-width: ${query}px)`
+    }
+    pictureEl.appendChild(sourceEl)
+  })
+  return pictureEl
+}
 
 /**
  * Generate the Img Elements
- * @returns {string} HTML string of images
+ * @returns {HTMLDivElement[]} Promise of an array of HTMLDivElement
  */
-export const generateImages = (): HTMLDivElement[] => {
-  return imageList.map(({ src, alt }: ImgRef, index: number) => {
-    const imgPath = constructImgPath(src)
-    const imgWrapper = document.createElement("div")
-    imgWrapper.classList.add("img-wrapper")
-    const imgEl = document.createElement("img")
-    imgEl.src = imgPath
-    imgEl.alt = alt
-    imgEl.dataset.thumbPath = imgPath
-    imgEl.dataset.thumbAlt = alt
-    imgEl.dataset.thumbIndex = String(index)
-    imgEl.width = 100
-    imgEl.height = 100
-    imgWrapper.appendChild(imgEl)
-    return imgWrapper
-  })
+export const generateImages = async (): Promise<HTMLDivElement[]> => {
+  return await Promise.all(
+    imageList.map(async ({ src, alt }: ImgRef, index: number) => {
+      const { default: img } = await import(
+        `../../../assets/images/${src}.${imageType}?preset=thumbnail`
+      )
+
+      const imgWrapper = document.createElement("div")
+      imgWrapper.classList.add("img-wrapper")
+
+      const picutureEl = createPictureEl(img)
+      const imgEl = document.createElement("img")
+
+      for (const [key, value] of Object.entries(img[img.length - 1])) {
+        // Apply the attributes to the image element from the
+        // imagePresets in vite.config.ts
+        imgEl.setAttribute(key, value as string)
+      }
+
+      imgEl.loading = "eager"
+      imgEl.alt = alt
+      imgEl.dataset.thumbPath = img[img.length - 1].src
+      imgEl.dataset.thumbAlt = alt
+      imgEl.dataset.thumbIndex = String(index)
+      imgEl.width = 100
+      imgEl.height = 100
+
+      picutureEl.appendChild(imgEl)
+      imgWrapper.appendChild(picutureEl)
+      return imgWrapper
+    }),
+  )
 }
 
 /**
  * Genreates the main image
  * @param imgPath path the image
  * @param imgAlt alt text for the image
- * @returns
+ * @returns {HTMLImageElement} HTML image element
  */
-export const generateMainImg = (
-  imgPath: string,
+export const generateMainImg = async function (
+  src: string,
   imgAlt: string,
-): HTMLImageElement => {
+): Promise<HTMLPictureElement> {
+  const { default: img } = await import(
+    `../../../assets/images/${src}.${imageType}?preset=large`
+  )
+
+  const pictureEl = createPictureEl(img)
   const imgEl = document.createElement("img")
-  imgEl.src = imgPath
+
+  for (const [key, value] of Object.entries(img[img.length - 1])) {
+    imgEl.setAttribute(key, value as string)
+  }
+
   imgEl.alt = imgAlt
   imgEl.width = 100
   imgEl.height = 100
-  return imgEl
+  imgEl.loading = "eager"
+
+  pictureEl.appendChild(imgEl)
+
+  return pictureEl
 }
