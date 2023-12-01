@@ -1,5 +1,5 @@
 import { ImgRef } from "@customTypes/types"
-import { imageList, imageType } from "@lib/images"
+import { imageList } from "@lib/images"
 
 const createPictureEl = (img: any, query?: string | null | undefined) => {
   const pictureEl = document.createElement("picture")
@@ -24,13 +24,13 @@ const createPictureEl = (img: any, query?: string | null | undefined) => {
  */
 export const generateImages = async (): Promise<HTMLDivElement[]> => {
   return await Promise.all(
-    imageList.map(async ({ src, alt }: ImgRef, index: number) => {
+    imageList.map(async ({ src, alt, type }: ImgRef, index: number) => {
       const { default: img } = await import(
-        `../../../assets/images/${src}.${imageType}?preset=thumbnail`
+        `../../../assets/images/${src}.${type}?preset=thumbnail`
       )
 
       const imgWrapper = document.createElement("div")
-      imgWrapper.classList.add("img-wrapper")
+      imgWrapper.classList.add("img-wrapper", "img-thumb-wrapper")
 
       const picutureEl = createPictureEl(img)
       const imgEl = document.createElement("img")
@@ -42,6 +42,8 @@ export const generateImages = async (): Promise<HTMLDivElement[]> => {
       }
 
       imgEl.loading = "eager"
+      imgEl.decoding = "async"
+
       imgEl.alt = alt
       imgEl.dataset.thumbPath = img[img.length - 1].src
       imgEl.dataset.thumbAlt = alt
@@ -63,11 +65,11 @@ export const generateImages = async (): Promise<HTMLDivElement[]> => {
  * @returns {HTMLImageElement} HTML image element
  */
 export const generateMainImg = async function (
-  src: string,
-  imgAlt: string,
+  imgData: ImgRef,
 ): Promise<HTMLPictureElement> {
+  const { src, alt, type } = imgData
   const { default: img } = await import(
-    `../../../assets/images/${src}.${imageType}?preset=large`
+    `../../../assets/images/${src}.${type}?preset=large`
   )
 
   const pictureEl = createPictureEl(img)
@@ -77,7 +79,7 @@ export const generateMainImg = async function (
     imgEl.setAttribute(key, value as string)
   }
 
-  imgEl.alt = imgAlt
+  imgEl.alt = alt
   imgEl.width = 100
   imgEl.height = 100
   imgEl.loading = "eager"

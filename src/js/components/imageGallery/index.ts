@@ -3,6 +3,7 @@ import { generateImages, generateMainImg } from "./helpers"
 import { setState } from "@utils/state"
 import { GalleryState } from "./types"
 import { wait } from "@utils/index"
+import { eventQueue } from "@utils/eventQueue"
 import {
   thumbnailWrapperEl,
   imgMainScreenEl,
@@ -15,10 +16,11 @@ import {
 /**
  * Initialize the image gallery
  */
-export const imageGallery = async () => {
+export const imageGallery = async (): Promise<void> => {
+  // An event queue to handle events that are triggered during animation
+  const { runEventQueue, addToEventQueue } = eventQueue(2)
+
   // *** STATE *** //
-  // An event queue to handle events that are triggered
-  const eventQueue: { func: Function; args: Event[] }[] = []
 
   const state = setState<GalleryState>(
     {
@@ -44,9 +46,11 @@ export const imageGallery = async () => {
       }
     },
   )
+
   // * ====================================== * //
   // * ====================================== * //
   // *** PRIMARY FUNCTIONS *** //
+
   /**
    * Update the main image
    */
@@ -55,11 +59,12 @@ export const imageGallery = async () => {
       currentImageIndex,
       currentMainImgEl: outgoingPicture,
       nextDir,
+      activeThumb,
     } = state
     // Grab new image
-    const { src, alt } = imageList[currentImageIndex]
+    const newImgData = imageList[currentImageIndex]
     // Generate new image
-    const newPictureEl = await generateMainImg(src, alt)
+    const newPictureEl = await generateMainImg(newImgData)
 
     const newImg = newPictureEl.querySelector("img") as HTMLImageElement
     // Add the fade-in class to trigger enter animation
@@ -73,6 +78,8 @@ export const imageGallery = async () => {
 
     // Remove the fade-in class to trigger enter animation
     newImg.classList.remove(`fade-in-${nextDir}`)
+
+    scrollToThumbnail(activeThumb as HTMLImageElement)
 
     if (state.currentMainImgEl) {
       // Trigger the fade-out animation
@@ -98,14 +105,28 @@ export const imageGallery = async () => {
   }
 
   /**
+   * Highlight the active thumbnail
+   */
+  const highlightActiveThumb = (): void => {
+    const currentThumb: HTMLImageElement | undefined =
+      state.imgThumbElements.find(
+        (el) => el.dataset.thumbIndex === String(state.currentImageIndex),
+      )
+
+    if (state.activeThumb) {
+      state.activeThumb!.classList.remove("active")
+    }
+
+    ;(currentThumb as HTMLImageElement).classList.add("active")
+    state.activeThumb = currentThumb as HTMLImageElement
+  }
+
+  /**
    * Load the first image
    */
   const loadFirstImage = async () => {
     // Generate the first image
-    const firstPicutre = await generateMainImg(
-      imageList[0].src,
-      imageList[0].alt,
-    )
+    const firstPicutre = await generateMainImg(imageList[0])
 
     const firstImg = firstPicutre.querySelector("img") as HTMLImageElement
     // Set current main image
@@ -119,45 +140,20 @@ export const imageGallery = async () => {
   }
 
   /**
-   * Highlight the active thumbnail
-   */
-  const highlightActiveThumb = (): void => {
-    const currentThumb: HTMLImageElement | undefined =
-      state.imgThumbElements.find(
-        (el) => el.dataset.thumbIndex === String(state.currentImageIndex),
-      )
-
-    if (state.activeThumb) {
-      state.activeThumb!.classList.remove("active")
-    }
-
-    const parentNode = currentThumb?.parentNode as HTMLDivElement
-
-    if (parentNode) {
-      parentNode.classList.add("active")
-      state.activeThumb = currentThumb?.parentNode as HTMLDivElement
-    }
-  }
-
-  /**
    * Load the thumbnail image
    * @param imgWrapper the img wrapper element
    */
-  const generateThumbImg = (imgWrapper: HTMLDivElement) => {
+  const generateThumbImg = async (imgWrapper: HTMLDivElement) => {
     const imgEl = imgWrapper.querySelector("img") as HTMLImageElement
     imgEl.style.opacity = "0"
 
-    imgEl.addEventListener("load", (e) => {
-      imgEl.style.opacity = "1"
-      checkAllImagesLoaded(e)
-    })
-
-    imgEl.onerror = (e) => {
-      console.log("error:::", e)
-    }
-
     // Set Image elements
     thumbnailWrapperEl!.appendChild(imgWrapper)
+
+    await imgEl.decode()
+
+    checkAllImagesLoaded(imgEl)
+    imgEl.style.opacity = "1"
   }
 
   // * ====================================== * //
@@ -193,43 +189,32 @@ export const imageGallery = async () => {
   /**
    * Add thumbnail image to the state array
    * Check if all the thumbnail images are loaded
-   * @param e load event
+   * @param imgEl HTMLImageElement
    */
-  const checkAllImagesLoaded = (e: Event): void => {
-    const target = e.target as HTMLImageElement
-    state.imgThumbElements.push(target)
+  const checkAllImagesLoaded = (imgEl: HTMLImageElement): void => {
+    state.imgThumbElements.push(imgEl)
 
     state.allImagesLoaded =
       state.imgThumbElements.length === state.imgThumbAmount
   }
 
   /**
-   * Run the event queue
+   * Scroll the active thumb element to center if possible
+   * @param el active thumb element
    */
-  const runEventQueue = (): void => {
-    if (eventQueue.length > 0) {
-      const event = eventQueue.shift()
-      const { func, args } = event!
-      func(...args)
-    }
+  const scrollToThumbnail = (el: HTMLDivElement): void => {
+    const scrollAmount = el.offsetLeft - thumbnailWrapperEl!.offsetWidth / 2
+
+    thumbnailWrapperEl!.scrollTo({
+      left: scrollAmount,
+      behavior: "smooth",
+    })
   }
 
-  /**
-   * Add function to the event queue
-   * @param func Function to add to the event queue
-   * @param args Event arguments
-   */
-  const addToEventQueue = (func: Function, args: Event[]): void => {
-    if (eventQueue.length <= 3) {
-      eventQueue.push({
-        func,
-        args,
-      })
-    }
-  }
   // * ====================================== * //
   // * ====================================== * //
   // *** EVENT HANDLERS *** //
+
   /**
    * Handle the click event on the thumbnail
    * @param e click event
@@ -287,12 +272,15 @@ export const imageGallery = async () => {
       }
     }
   }
+
   // * ====================================== * //
   // * ====================================== * //
   // *** REGISTER EVENTS LISTENERS *** //
+
   // Get image elements
   const imgThumbnailEls: HTMLDivElement[] = await generateImages()
 
+  // Add the thumbnail images to the DOM and register their event listeners
   imgThumbnailEls.forEach((imgWrapper: HTMLDivElement) => {
     generateThumbImg(imgWrapper)
     // Add event listener to the thumbnail wrapper
@@ -303,6 +291,7 @@ export const imageGallery = async () => {
   imgMainScreenPrevBtnEl.forEach((btn) =>
     btn.addEventListener("click", handleMainScreenBtnClick),
   )
+
   // * ====================================== * //
   // * ====================================== * //
   // *** INIT *** //

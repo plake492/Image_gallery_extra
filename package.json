@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@mojojoejo/vite-plugin-purgecss": "^1.1.0",
     "module-alias": "^2.2.3",
     "sass": "^1.69.5",
     "sharp": "^0.33.0",

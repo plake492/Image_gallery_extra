@@ -7,28 +7,31 @@ $ease: cubic-bezier(0.51, 0.92, 0.24, 1.03);
   align-items: flex-start;
   cursor: pointer;
   overflow: auto;
+  scroll-snap-type: x mandatory;
 
   & > * {
+    scroll-snap-align: center;
+  }
+
+  .img-thumb-wrapper {
     min-width: 150px;
-    transition: all 0.5s $ease;
     overflow: hidden;
     border-radius: 2px;
-    border-style: solid;
-    border-width: 0px;
-    border-color: lime;
-    transition: border 0.5s $ease;
 
-    &:hover {
-      img {
+    img {
+      border-style: solid;
+      border-width: 0px;
+      border-color: lime;
+      transition: all 0.5s $ease;
+
+      &:hover {
         transform: scale(1.1);
         filter: grayscale(1.3);
       }
-    }
-    &.active {
-      border-width: 2px;
 
-      img {
-        transform: scale(1.1);
+      &.active {
+        border-width: 2px;
+        transform: scale(1);
       }
     }
   }
