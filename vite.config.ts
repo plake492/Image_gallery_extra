@@ -3,9 +3,9 @@ import tsconfigPaths from "vite-tsconfig-paths"
 import imagePresets, { widthPreset } from "vite-plugin-image-presets"
 
 export default defineConfig({
+  base: "Image_gallery_extra",
   plugins: [
     tsconfigPaths(),
-
     imagePresets({
       thumbnail: widthPreset({
         widths: [128, 256],
