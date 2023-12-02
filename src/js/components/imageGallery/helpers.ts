@@ -41,18 +41,18 @@ export const generateImages = async (): Promise<HTMLDivElement[]> => {
         imgEl.setAttribute(key, value as string)
       }
 
-      imgEl.loading = "eager"
-      imgEl.decoding = "async"
-
       imgEl.alt = alt
       imgEl.dataset.thumbPath = img[img.length - 1].src
       imgEl.dataset.thumbAlt = alt
       imgEl.dataset.thumbIndex = String(index)
       imgEl.width = 100
       imgEl.height = 100
+      imgEl.loading = "eager"
+      imgEl.decoding = "async"
 
       picutureEl.appendChild(imgEl)
       imgWrapper.appendChild(picutureEl)
+
       return imgWrapper
     }),
   )
@@ -66,12 +66,13 @@ export const generateImages = async (): Promise<HTMLDivElement[]> => {
  */
 export const generateMainImg = async function (
   imgData: ImgRef,
-): Promise<HTMLPictureElement> {
+): Promise<HTMLAnchorElement> {
   const { src, alt, type } = imgData
   const { default: img } = await import(
     `../../../assets/images/${src}.${type}?preset=large`
   )
 
+  const aEl = document.createElement("a")
   const pictureEl = createPictureEl(img)
   const imgEl = document.createElement("img")
 
@@ -85,6 +86,7 @@ export const generateMainImg = async function (
   imgEl.loading = "eager"
 
   pictureEl.appendChild(imgEl)
+  aEl.appendChild(pictureEl)
 
-  return pictureEl
+  return aEl
 }

@@ -1,7 +1,8 @@
-import { imageList } from "@lib/images"
 import { generateImages, generateMainImg } from "./helpers"
-import { setState } from "@utils/state"
+import { init as initPhotoSwipe } from "./photoSwipe"
 import { GalleryState } from "./types"
+import { imageList } from "@lib/images"
+import { setState } from "@utils/state"
 import { wait } from "@utils/index"
 import { eventQueue } from "@utils/eventQueue"
 import {
@@ -11,13 +12,17 @@ import {
   currentImageNumberEl,
   mainImgTitleEl,
   mainImgDescriptionEl,
+  mainImgGallertBtnEl,
+  overlayEl,
 } from "./querySelectors"
 
 /**
  * Initialize the image gallery
  */
 export const imageGallery = async (): Promise<void> => {
-  const animationDuration = 350
+  const deltaVelocity = 40
+
+  const animationDuration = 700
   // An event queue to handle events that are triggered during animation
   const { runEventQueue, addToEventQueue } = eventQueue(2)
 
@@ -29,10 +34,13 @@ export const imageGallery = async (): Promise<void> => {
       allImagesLoaded: false,
       imgThumbElements: [],
       imgThumbAmount: imageList.length,
-      activeThumb: null,
+      activeThumb: undefined,
       currentMainImgEl: null,
       isAnmiating: false,
       nextDir: "forward",
+      lightBoxInstance: null,
+      lightboxOpen: false,
+      isTouchAnimation: false,
     },
     async (_, key, value) => {
       if (key === "allImagesLoaded" && value === true) {
@@ -55,47 +63,33 @@ export const imageGallery = async (): Promise<void> => {
    * Update the main image
    */
   const updateMainImg = async () => {
-    const {
-      currentImageIndex,
-      currentMainImgEl: outgoingPicture,
-      nextDir,
-      activeThumb,
-    } = state
-    // Grab new image
-    const newImgData = imageList[currentImageIndex]
-    // Generate new image
-    const newPictureEl = await generateMainImg(newImgData)
+    const { currentMainImgEl: outgoingPicture, nextDir, activeThumb } = state
 
-    const newImg = newPictureEl.querySelector("img") as HTMLImageElement
-    // Add the fade-in class to trigger enter animation
-    newImg.classList.add(`fade-in-${nextDir}`)
-    // Append the new image to the DOM
-    imgMainScreenEl!.appendChild(newPictureEl)
-    // Update state
-    state.currentMainImgEl = newPictureEl
-    // Wait for the image to load
-    await newImg.decode()
+    // Create and load the new main image
+    await loadMainImage()
 
-    // Remove the fade-in class to trigger enter animation
-    newImg.classList.remove(`fade-in-${nextDir}`)
-
+    // Scroll the active thumbnail to center
     scrollToThumbnail(activeThumb as HTMLImageElement)
 
     if (state.currentMainImgEl) {
       // Trigger the fade-out animation
-      const outgoingImg = outgoingPicture!.querySelector(
+      const outgoingImgEl = outgoingPicture!.querySelector(
         "img",
       ) as HTMLImageElement
-
-      outgoingImg!.classList.add(`fade-out-${nextDir}`)
-
+      // Add the fade-out class to trigger the exit animation
+      outgoingImgEl!.classList.add(`fade-out-${nextDir}`)
       // Wait for the fade-out animation to finish before removing the element
       await wait(animationDuration)
-
+      // After the animation is finished, remove the element from the DOM
       imgMainScreenEl!.removeChild(outgoingPicture as Node)
     }
 
+    // Reset the animation state
     state.isAnmiating = false
+
+    if (state.isTouchAnimation) {
+      state.isTouchAnimation = false
+    }
 
     // Update the overlay content
     updateMainImgOverlayText()
@@ -107,35 +101,41 @@ export const imageGallery = async (): Promise<void> => {
    * Highlight the active thumbnail
    */
   const highlightActiveThumb = (): void => {
-    const currentThumb: HTMLImageElement | undefined =
-      state.imgThumbElements.find(
-        (el) => el.dataset.thumbIndex === String(state.currentImageIndex),
-      )
+    // Remove the active class from the previous active thumbnail if present
+    state.activeThumb?.classList.remove("active")
 
-    if (state.activeThumb) {
-      state.activeThumb!.classList.remove("active")
-    }
+    // Grab the current active thumbnail
+    const currentThumb = state.imgThumbElements.find(
+      (el) => el.dataset.thumbIndex === String(state.currentImageIndex),
+    )
 
-    ;(currentThumb as HTMLImageElement).classList.add("active")
-    state.activeThumb = currentThumb as HTMLImageElement
+    currentThumb?.classList.add("active")
+    state.activeThumb = currentThumb
   }
 
   /**
-   * Load the first image
+   * Handle Loading the new main image
    */
-  const loadFirstImage = async () => {
-    // Generate the first image
-    const firstPicutre = await generateMainImg(imageList[0])
-
-    const firstImg = firstPicutre.querySelector("img") as HTMLImageElement
-    // Set current main image
-    state.currentMainImgEl = firstPicutre
-
-    firstImg.style.opacity = "0"
-    firstImg.addEventListener("load", () => (firstImg.style.opacity = "1"))
-
-    imgMainScreenEl!.appendChild(firstPicutre)
-    updateMainImgOverlayText()
+  const loadMainImage = async () => {
+    const { currentImageIndex, nextDir } = state
+    // Grab first image data
+    const imgData = imageList[currentImageIndex]
+    // Generate the first image Element
+    const anchorEl = await generateMainImg(imgData)
+    // Set current main image in state
+    state.currentMainImgEl = anchorEl
+    // Grab the image element from the new anchor element
+    const imgEl = anchorEl.querySelector("img") as HTMLImageElement
+    // Add the fade-in class to set up the enter animation
+    imgEl.classList.add(`fade-in-${nextDir}`)
+    // Append the new image to the DOM
+    imgMainScreenEl!.appendChild(anchorEl)
+    // Wait for the image to load
+    await imgEl.decode()
+    // Initialize the lightbox
+    state.lightBoxInstance = initPhotoSwipe(anchorEl, imgEl)
+    // Remove the fade-in class to trigger the enter animation
+    imgEl.classList.remove(`fade-in-${nextDir}`)
   }
 
   /**
@@ -144,15 +144,16 @@ export const imageGallery = async (): Promise<void> => {
    */
   const generateThumbImg = async (imgWrapper: HTMLDivElement) => {
     const imgEl = imgWrapper.querySelector("img") as HTMLImageElement
+    // Hide the image before load
     imgEl.style.opacity = "0"
-
     // Set Image elements
     thumbnailWrapperEl!.appendChild(imgWrapper)
-
+    // Wait for the image to load
     await imgEl.decode()
-
-    checkAllImagesLoaded(imgEl)
+    // Show the image after load
     imgEl.style.opacity = "1"
+    // Check if all the thumbnail images are loaded
+    checkAllImagesLoaded(imgEl)
   }
 
   // * ====================================== * //
@@ -165,6 +166,7 @@ export const imageGallery = async (): Promise<void> => {
     const { title, description } = imageList[state.currentImageIndex]
     mainImgTitleEl!.textContent = title
     mainImgDescriptionEl!.textContent = description
+    mainImgGallertBtnEl!.addEventListener("click", handleOpenLightBox)
   }
 
   /**
@@ -182,7 +184,8 @@ export const imageGallery = async (): Promise<void> => {
    * @param imgEl HTMLImageElement
    */
   const checkAllImagesLoaded = (imgEl: HTMLImageElement): void => {
-    state.imgThumbElements.push(imgEl)
+    // Add the image element to the state array
+    state.imgThumbElements = [...state.imgThumbElements, imgEl]
 
     state.allImagesLoaded =
       state.imgThumbElements.length === state.imgThumbAmount
@@ -214,6 +217,17 @@ export const imageGallery = async (): Promise<void> => {
   // * ====================================== * //
   // * ====================================== * //
   // *** EVENT HANDLERS *** //
+
+  /**
+   * Hnadle the click event on the expand button
+   */
+  const handleOpenLightBox = () => {
+    state.lightBoxInstance!.loadAndOpen(0, {
+      gallery: document.querySelector(
+        ".img-main-screen a",
+      ) as HTMLAnchorElement,
+    })
+  }
 
   /**
    * Handle the click event on the thumbnail
@@ -248,6 +262,7 @@ export const imageGallery = async (): Promise<void> => {
    */
   const handleMainScreenBtnClick = (e: Event): void => {
     if (state.isAnmiating) {
+      if (state.isTouchAnimation) return
       addToEventQueue(handleMainScreenBtnClick, [e])
       return
     }
@@ -276,6 +291,15 @@ export const imageGallery = async (): Promise<void> => {
     }
   }
 
+  /**
+   * Initialize the image gallery
+   */
+  const init = async () => {
+    setAnimationCssVar()
+    await loadMainImage()
+    updateMainImgOverlayText()
+  }
+
   // * ====================================== * //
   // * ====================================== * //
   // *** REGISTER EVENTS LISTENERS *** //
@@ -299,6 +323,79 @@ export const imageGallery = async (): Promise<void> => {
   // * ====================================== * //
   // *** INIT *** //
 
-  setAnimationCssVar()
-  await loadFirstImage()
+  await init()
+
+  // TODO CLEAN UP THIS UNGLY ASS CODE //
+  // SCREEN TOUCH FOR MOBILE DEVICES
+  let touchstartX = 0
+  let touchendX = 0
+
+  imgMainScreenEl!.addEventListener(
+    "touchstart",
+    (event) => {
+      touchstartX = event.changedTouches[0].screenX
+    },
+    false,
+  )
+
+  imgMainScreenEl!.addEventListener(
+    "touchend",
+    (event) => {
+      touchendX = event.changedTouches[0].screenX
+      handleGesture()
+    },
+    false,
+  )
+
+  const handleGesture = () => {
+    const gestureSize = Math.abs(touchendX - touchstartX)
+
+    if (gestureSize > 10) {
+      document.body.style.height = "100%"
+      document.body.style.overflow = "hidden"
+    }
+
+    if (state.isTouchAnimation) return
+
+    if (gestureSize > window.innerWidth / 4) {
+      state.isTouchAnimation = true
+
+      if (touchendX < touchstartX) {
+        imgMainScreenPrevBtnEl[1].click()
+      }
+      console.log("touchendX > touchstartX ==>", touchendX, touchstartX)
+
+      if (touchendX > touchstartX) {
+        imgMainScreenPrevBtnEl[0].click()
+      }
+    }
+  }
+
+  // SIDE SCROLL FOR DESKTOPS
+  window.addEventListener("mousewheel", (e) => {
+    const element = (<WheelEvent>e).target as HTMLElement
+
+    if (
+      element.isEqualNode(imgMainScreenEl) ||
+      element.isEqualNode(overlayEl)
+    ) {
+      if (state.isTouchAnimation) return
+
+      const deltaX = (<WheelEvent>e).deltaX
+
+      // Left scroll
+      if (deltaX < deltaVelocity * -1) {
+        state.isTouchAnimation = true
+        imgMainScreenPrevBtnEl[0].click()
+        return false
+      }
+
+      // Right Scroll
+      if (deltaX > deltaVelocity) {
+        state.isTouchAnimation = true
+        imgMainScreenPrevBtnEl[1].click()
+        return false
+      }
+    }
+  })
 }

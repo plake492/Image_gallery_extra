@@ -20,6 +20,8 @@
     "vite-tsconfig-paths": "^4.2.1"
   },
   "dependencies": {
-    "@plake492/css_utilities": "^1.1.0"
+    "@plake492/css_utilities": "^1.1.0",
+    "@types/photoswipe": "^4.1.6",
+    "photoswipe": "^5.4.3"
   }
 }

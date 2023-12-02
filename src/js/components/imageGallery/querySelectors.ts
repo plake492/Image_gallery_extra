@@ -8,8 +8,13 @@ export const imgMainScreenPrevBtnEl =
 export const currentImageNumberEl = document.querySelector<HTMLDivElement>(
   ".current-img-number",
 )
+export const overlayEl =
+  document.querySelector<HTMLDivElement>(".main-img-overlay")
 export const mainImgTitleEl =
   document.querySelector<HTMLDivElement>("#main-img-title")
 export const mainImgDescriptionEl = document.querySelector<HTMLDivElement>(
   "#main-img-description",
+)
+export const mainImgGallertBtnEl = document.querySelector<HTMLButtonElement>(
+  "#main-img-gallery-btn",
 )
