@@ -15,12 +15,12 @@ declare global {
  */
 export const setState = <T extends object>(
   stateInitial: T,
-  cb: (a: T, b: string, c: any) => void,
+  cb?: (a: T, b: string, c: any) => void,
 ): T => {
   return new Proxy(stateInitial as object, {
     set: (target: T, key: string, value) => {
       target[key as keyof T] = value
-      cb(target, key, value)
+      if (cb) cb(target, key, value)
       return true
     },
   })

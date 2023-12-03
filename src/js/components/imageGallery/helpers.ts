@@ -64,9 +64,9 @@ export const generateImages = async (): Promise<HTMLDivElement[]> => {
  * @param imgAlt alt text for the image
  * @returns {HTMLImageElement} HTML image element
  */
-export const generateMainImg = async function (
+export const generateMainImg = async (
   imgData: ImgRef,
-): Promise<HTMLAnchorElement> {
+): Promise<HTMLAnchorElement> => {
   const { src, alt, type } = imgData
   const { default: img } = await import(
     `../../../assets/images/${src}.${type}?preset=large`
@@ -90,3 +90,5 @@ export const generateMainImg = async function (
 
   return aEl
 }
+
+export const generateMainImgOverlay = async () => {}

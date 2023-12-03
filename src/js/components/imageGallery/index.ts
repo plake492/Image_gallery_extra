@@ -20,13 +20,37 @@ import {
  * Initialize the image gallery
  */
 export const imageGallery = async (): Promise<void> => {
-  const deltaVelocity = 40
-
   const animationDuration = 700
+  const deltaVelocity = 40
+  const dragVelocity = 40
+  const touchVelocity = 60
+
   // An event queue to handle events that are triggered during animation
   const { runEventQueue, addToEventQueue } = eventQueue(2)
 
-  // *** STATE *** //
+  // *** STATE MANAGMENT *** //
+  const stateActions = async (key: string, value: any) => {
+    switch (key) {
+      case "currentImageIndex":
+        setCurrentImageNumber()
+        highlightActiveThumb()
+        await updateMainImg()
+        break
+
+      case "allImagesLoaded":
+        if (value === true) {
+          setCurrentImageNumber()
+          highlightActiveThumb()
+        }
+        break
+
+      case "isMouseDown":
+        // Add or remove the mousemove event listener based on the mousedown state
+        const method = value ? "add" : "remove"
+        imgMainScreenEl![`${method}EventListener`]("mousemove", handleMousemove)
+        break
+    }
+  }
 
   const state = setState<GalleryState>(
     {
@@ -41,19 +65,22 @@ export const imageGallery = async (): Promise<void> => {
       lightBoxInstance: null,
       lightboxOpen: false,
       isTouchAnimation: false,
+      isMouseDown: false,
+      hasMouseAnimated: false,
     },
-    async (_, key, value) => {
-      if (key === "allImagesLoaded" && value === true) {
-        setCurrentImageNumber()
-        highlightActiveThumb()
-      }
-      if (key === "currentImageIndex") {
-        setCurrentImageNumber()
-        highlightActiveThumb()
-        await updateMainImg()
-      }
+    async (_, key, value): Promise<void> => {
+      await stateActions(key, value)
     },
   )
+
+  const mouseState = setState({
+    mouseDownX: 0,
+  })
+
+  const tocuhState = setState({
+    touchstartX: 0,
+    touchendX: 0,
+  })
 
   // * ====================================== * //
   // * ====================================== * //
@@ -64,10 +91,8 @@ export const imageGallery = async (): Promise<void> => {
    */
   const updateMainImg = async () => {
     const { currentMainImgEl: outgoingPicture, nextDir, activeThumb } = state
-
     // Create and load the new main image
     await loadMainImage()
-
     // Scroll the active thumbnail to center
     scrollToThumbnail(activeThumb as HTMLImageElement)
 
@@ -83,14 +108,16 @@ export const imageGallery = async (): Promise<void> => {
       // After the animation is finished, remove the element from the DOM
       imgMainScreenEl!.removeChild(outgoingPicture as Node)
     }
-
     // Reset the animation state
     state.isAnmiating = false
-
+    // Check if the animation was triggered by a touch event
     if (state.isTouchAnimation) {
       state.isTouchAnimation = false
     }
-
+    // Check if the animation was triggered by a mouse event
+    if (state.isMouseAnimation) {
+      state.isMouseAnimation = false
+    }
     // Update the overlay content
     updateMainImgOverlayText()
     // Run the event queue
@@ -205,6 +232,23 @@ export const imageGallery = async (): Promise<void> => {
   }
 
   /**
+   * Handle touch events on the x axis
+   */
+  const handleGesture = () => {
+    const touchGesture = Math.abs(tocuhState.touchendX - tocuhState.touchstartX)
+
+    if (touchGesture > touchVelocity) {
+      state.isTouchAnimation = true
+      if (tocuhState.touchendX < tocuhState.touchstartX) {
+        imgMainScreenPrevBtnEl[1].click()
+      }
+      if (tocuhState.touchendX > tocuhState.touchstartX) {
+        imgMainScreenPrevBtnEl[0].click()
+      }
+    }
+  }
+
+  /**
    * Set the animation duration css variable
    */
   const setAnimationCssVar = () => {
@@ -212,6 +256,15 @@ export const imageGallery = async (): Promise<void> => {
       "--animation-duration",
       `${animationDuration}ms`,
     )
+  }
+
+  /**
+   * Initialize the image gallery
+   */
+  const init = async () => {
+    setAnimationCssVar()
+    await loadMainImage()
+    updateMainImgOverlayText()
   }
 
   // * ====================================== * //
@@ -244,14 +297,14 @@ export const imageGallery = async (): Promise<void> => {
       addToEventQueue(handleThumbnailClick, [e])
       return
     }
+
     state.isAnmiating = true
 
     if (imgIndex) {
-      // Updating the current image index will
-      // trigger the updateMainImg function
       state.nextDir =
         state.currentImageIndex > Number(imgIndex) ? "backward" : "forward"
 
+      // Updating the current image index will trigger the updateMainImg function
       state.currentImageIndex = Number(imgIndex)
     }
   }
@@ -262,17 +315,16 @@ export const imageGallery = async (): Promise<void> => {
    */
   const handleMainScreenBtnClick = (e: Event): void => {
     if (state.isAnmiating) {
-      if (state.isTouchAnimation) return
+      if (state.isTouchAnimation || state.isMouseAnimation) return
       addToEventQueue(handleMainScreenBtnClick, [e])
       return
     }
+
     state.isAnmiating = true
 
     const target = e.target as HTMLButtonElement
     const dir = target.dataset.dir
 
-    // Updating the current image index will
-    // trigger the updateMainImg function
     if (dir === "prev") {
       state.nextDir = "backward"
       if (state.currentImageIndex === 0) {
@@ -292,12 +344,91 @@ export const imageGallery = async (): Promise<void> => {
   }
 
   /**
-   * Initialize the image gallery
+   * Set state on touch start
+   * @param e TouchEvent
    */
-  const init = async () => {
-    setAnimationCssVar()
-    await loadMainImage()
-    updateMainImgOverlayText()
+  const touchstartEvent = (e: TouchEvent) => {
+    tocuhState.touchstartX = e.changedTouches[0].screenX
+  }
+  /**
+   * Set state on touch end and determine if the user swiped left or right
+   * @param e TouchEvent
+   */
+  const touchendEvent = (e: TouchEvent) => {
+    tocuhState.touchendX = e.changedTouches[0].screenX
+    handleGesture()
+  }
+
+  /**
+   * Handle mouse wheel events on the x axis
+   * @param e Event
+   */
+  const handleMouseWheelEvent = (e: Event): void => {
+    if (state.isTouchAnimation) return
+    const element = (<WheelEvent>e).target as HTMLElement
+
+    if (
+      element.isEqualNode(imgMainScreenEl) ||
+      element.isEqualNode(overlayEl)
+    ) {
+      const deltaX = (<WheelEvent>e).deltaX
+      // Left scroll
+      if (deltaX < deltaVelocity * -1) {
+        state.isTouchAnimation = true
+        imgMainScreenPrevBtnEl[0].click()
+      }
+
+      // Right Scroll
+      if (deltaX > deltaVelocity) {
+        state.isTouchAnimation = true
+        imgMainScreenPrevBtnEl[1].click()
+      }
+    }
+  }
+
+  /**
+   * Handle mouse move events to trigger the prev and next buttons
+   * @param e Event
+   */
+  const handleMousemove = (e: Event): void => {
+    if (state.isMouseAnimation || state.hasMouseAnimated) return
+    // Get x coordinate of the mouse
+    const xCoord = (<MouseEvent>e).clientX
+    // Calculate the distance the mouse has moved
+    const deltaX = xCoord - mouseState.mouseDownX
+    // If the distance is greater than the dragVelocity, animate to the prev image
+    if (deltaX > dragVelocity) {
+      state.isMouseAnimation = true
+      state.hasMouseAnimated = true
+      imgMainScreenPrevBtnEl[0].click()
+    }
+    // If the distance is less than the -dragVelocity, animate to the next image
+    if (deltaX < dragVelocity * -1) {
+      state.isMouseAnimation = true
+      state.hasMouseAnimated = true
+      imgMainScreenPrevBtnEl[1].click()
+    }
+  }
+  /**
+   * Set state on mouse down
+   * @param e MouseEvent
+   */
+  const handleMouseDown = (e: MouseEvent) => {
+    const el = (<MouseEvent>e).target as HTMLElement
+
+    if (el.isEqualNode(imgMainScreenEl) || el.isEqualNode(overlayEl)) {
+      state.isMouseDown = true
+      mouseState.mouseDownX = e.clientX
+      imgMainScreenEl!.style.cursor = "grabbing"
+    }
+  }
+  /**
+   * Set state on mouse up
+   */
+  const handleMouseUp = () => {
+    state.isMouseDown = false
+    imgMainScreenEl!.style.cursor = "auto"
+    state.hasMouseAnimated = false
   }
 
   // * ====================================== * //
@@ -319,83 +450,15 @@ export const imageGallery = async (): Promise<void> => {
     btn.addEventListener("click", handleMainScreenBtnClick),
   )
 
+  imgMainScreenEl!.addEventListener("touchstart", touchstartEvent, false)
+  imgMainScreenEl!.addEventListener("touchend", touchendEvent, false)
+  window.addEventListener("mousedown", handleMouseDown)
+  window.addEventListener("mouseup", handleMouseUp)
+  window.addEventListener("mousewheel", handleMouseWheelEvent)
+
   // * ====================================== * //
   // * ====================================== * //
   // *** INIT *** //
 
   await init()
-
-  // TODO CLEAN UP THIS UNGLY ASS CODE //
-  // SCREEN TOUCH FOR MOBILE DEVICES
-  let touchstartX = 0
-  let touchendX = 0
-
-  imgMainScreenEl!.addEventListener(
-    "touchstart",
-    (event) => {
-      touchstartX = event.changedTouches[0].screenX
-    },
-    false,
-  )
-
-  imgMainScreenEl!.addEventListener(
-    "touchend",
-    (event) => {
-      touchendX = event.changedTouches[0].screenX
-      handleGesture()
-    },
-    false,
-  )
-
-  const handleGesture = () => {
-    const gestureSize = Math.abs(touchendX - touchstartX)
-
-    if (gestureSize > 10) {
-      document.body.style.height = "100%"
-      document.body.style.overflow = "hidden"
-    }
-
-    if (state.isTouchAnimation) return
-
-    if (gestureSize > window.innerWidth / 4) {
-      state.isTouchAnimation = true
-
-      if (touchendX < touchstartX) {
-        imgMainScreenPrevBtnEl[1].click()
-      }
-      console.log("touchendX > touchstartX ==>", touchendX, touchstartX)
-
-      if (touchendX > touchstartX) {
-        imgMainScreenPrevBtnEl[0].click()
-      }
-    }
-  }
-
-  // SIDE SCROLL FOR DESKTOPS
-  window.addEventListener("mousewheel", (e) => {
-    const element = (<WheelEvent>e).target as HTMLElement
-
-    if (
-      element.isEqualNode(imgMainScreenEl) ||
-      element.isEqualNode(overlayEl)
-    ) {
-      if (state.isTouchAnimation) return
-
-      const deltaX = (<WheelEvent>e).deltaX
-
-      // Left scroll
-      if (deltaX < deltaVelocity * -1) {
-        state.isTouchAnimation = true
-        imgMainScreenPrevBtnEl[0].click()
-        return false
-      }
-
-      // Right Scroll
-      if (deltaX > deltaVelocity) {
-        state.isTouchAnimation = true
-        imgMainScreenPrevBtnEl[1].click()
-        return false
-      }
-    }
-  })
 }

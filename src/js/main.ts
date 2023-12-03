@@ -6,6 +6,8 @@ import "../scss/main.scss"
  * Initialize the app
  */
 ;((): void => {
-  imageGallery()
-  audioPlayer()
+  window.addEventListener("load", () => {
+    imageGallery()
+    audioPlayer()
+  })
 })()

@@ -14,4 +14,6 @@ export interface GalleryState {
   lightBoxInstance: PhotoSwipeLightbox | null
   lightboxOpen: boolean
   isTouchAnimation: boolean
+  isMouseDown: boolean
+  hasMouseAnimated: boolean
 }

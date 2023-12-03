@@ -15,8 +15,6 @@ export const init = (
   const lightbox = new PhotoSwipeLightbox({
     // may select multiple "galleries"
     gallery: ".img-main-screen a",
-
-    bgOpacity: 0.9,
     // setup PhotoSwipe Core dynamic import
     pswpModule: () => import("photoswipe"),
   })

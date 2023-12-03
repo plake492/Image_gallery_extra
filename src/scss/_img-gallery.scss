@@ -54,6 +54,7 @@ $ease: cubic-bezier(0.51, 0.92, 0.24, 1.03);
   transition: all 0.5s $ease;
   border-radius: 4px;
   overflow: hidden;
+  cursor: grab;
 
   img {
     object-position: center;
