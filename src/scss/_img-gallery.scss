@@ -81,8 +81,10 @@ $ease: cubic-bezier(0.51, 0.92, 0.24, 1.03);
     cursor: auto;
 
     &.title {
-      font-size: 3rem;
-      font-weight: 500;
+      p {
+        font-size: 3rem;
+        font-weight: 500;
+      }
     }
 
     &.description {
