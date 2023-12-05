@@ -1,237 +1,220 @@
-// import lottieWeb from "https://cdn.skypack.dev/lottie-web"
+import { convertTime } from "./helpers"
+import { audioPlayerEls, getQuerySelectors } from "./querySelectors"
 
-export const audioPlayer = () => {
-  //   class AudioPlayer extends HTMLElement {
-  //     constructor() {
-  //       super()
-  //       const template = document.querySelector("template")
-  //       const templateContent = template!.content
-  //       const shadow = this.attachShadow({ mode: "open" })
-  //       shadow.appendChild(templateContent.cloneNode(true))
-  //     }
-  //     connectedCallback() {
-  //       everything(this)
-  //     }
-  //   }
-  //   const everything = function (element: HTMLElement) {
-  //     console.log("element ==>", element)
-  //     const shadow = element.shadowRoot
-  //     const audioPlayerContainer = shadow.getElementById("audio-player-container")
-  //     const playIconContainer = shadow.getElementById("play-icon")
-  //     const seekSlider = shadow.getElementById("seek-slaider")
-  //     const volumeSlider = shadow.getElementById("volume-slider")
-  //     const muteIconContainer = shadow.getElementById("mute-icon")
-  //     const audio = shadow.querySelector("audio")
-  //     const durationContainer = shadow.getElementById("duration")
-  //     const currentTimeContainer = shadow.getElementById("current-time")
-  //     const outputContainer = shadow.getElementById("volume-output")
-  //     let playState = "play"
-  //     let muteState = "unmute"
-  //     let raf = null
-  //     audio.src = element.getAttribute("data-src")
-  //     const playAnimation = lottieWeb.loadAnimation({
-  //       container: playIconContainer,
-  //       path: "https://maxst.icons8.com/vue-static/landings/animated-icons/icons/pause/pause.json",
-  //       renderer: "svg",
-  //       loop: false,
-  //       autoplay: false,
-  //       name: "Play Animation",
-  //     })
-  //     const muteAnimation = lottieWeb.loadAnimation({
-  //       container: muteIconContainer,
-  //       path: "https://maxst.icons8.com/vue-static/landings/animated-icons/icons/mute/mute.json",
-  //       renderer: "svg",
-  //       loop: false,
-  //       autoplay: false,
-  //       name: "Mute Animation",
-  //     })
-  //     playAnimation.goToAndStop(14, true)
-  //     const whilePlaying = () => {
-  //       seekSlider.value = Math.floor(audio.currentTime)
-  //       currentTimeContainer.textContent = calculateTime(seekSlider.value)
-  //       audioPlayerContainer.style.setProperty(
-  //         "--seek-before-width",
-  //         `${(seekSlider.value / seekSlider.max) * 100}%`,
-  //       )
-  //       raf = requestAnimationFrame(whilePlaying)
-  //     }
-  //     const showRangeProgress = (rangeInput) => {
-  //       if (rangeInput === seekSlider)
-  //         audioPlayerContainer.style.setProperty(
-  //           "--seek-before-width",
-  //           (rangeInput.value / rangeInput.max) * 100 + "%",
-  //         )
-  //       else
-  //         audioPlayerContainer.style.setProperty(
-  //           "--volume-before-width",
-  //           (rangeInput.value / rangeInput.max) * 100 + "%",
-  //         )
-  //     }
-  //     const calculateTime = (secs) => {
-  //       const minutes = Math.floor(secs / 60)
-  //       const seconds = Math.floor(secs % 60)
-  //       const returnedSeconds = seconds < 10 ? `0${seconds}` : `${seconds}`
-  //       return `${minutes}:${returnedSeconds}`
-  //     }
-  //     const displayDuration = () => {
-  //       durationContainer.textContent = calculateTime(audio.duration)
-  //     }
-  //     const setSliderMax = () => {
-  //       seekSlider.max = Math.floor(audio.duration)
-  //     }
-  //     const displayBufferedAmount = () => {
-  //       const bufferedAmount = Math.floor(
-  //         audio.buffered.end(audio.buffered.length - 1),
-  //       )
-  //       audioPlayerContainer.style.setProperty(
-  //         "--buffered-width",
-  //         `${(bufferedAmount / seekSlider.max) * 100}%`,
-  //       )
-  //     }
-  //     if (audio.readyState > 0) {
-  //       displayDuration()
-  //       setSliderMax()
-  //       displayBufferedAmount()
-  //     } else {
-  //       audio.addEventListener("loadedmetadata", () => {
-  //         displayDuration()
-  //         setSliderMax()
-  //         displayBufferedAmount()
-  //       })
-  //     }
-  //     playIconContainer.addEventListener("click", () => {
-  //       if (playState === "play") {
-  //         audio.play()
-  //         playAnimation.playSegments([14, 27], true)
-  //         requestAnimationFrame(whilePlaying)
-  //         playState = "pause"
-  //       } else {
-  //         audio.pause()
-  //         playAnimation.playSegments([0, 14], true)
-  //         cancelAnimationFrame(raf)
-  //         playState = "play"
-  //       }
-  //     })
-  //     muteIconContainer.addEventListener("click", () => {
-  //       if (muteState === "unmute") {
-  //         muteAnimation.playSegments([0, 15], true)
-  //         audio.muted = true
-  //         muteState = "mute"
-  //       } else {
-  //         muteAnimation.playSegments([15, 25], true)
-  //         audio.muted = false
-  //         muteState = "unmute"
-  //       }
-  //     })
-  //     audio.addEventListener("progress", displayBufferedAmount)
-  //     seekSlider.addEventListener("input", (e) => {
-  //       showRangeProgress(e.target)
-  //       currentTimeContainer.textContent = calculateTime(seekSlider.value)
-  //       if (!audio.paused) {
-  //         cancelAnimationFrame(raf)
-  //       }
-  //     })
-  //     seekSlider.addEventListener("change", () => {
-  //       audio.currentTime = seekSlider.value
-  //       if (!audio.paused) {
-  //         requestAnimationFrame(whilePlaying)
-  //       }
-  //     })
-  //     volumeSlider.addEventListener("input", (e) => {
-  //       const value = e.target.value
-  //       showRangeProgress(e.target)
-  //       outputContainer.textContent = value
-  //       audio.volume = value / 100
-  //     })
-  //     if ("mediaSession" in navigator) {
-  //       navigator.mediaSession.metadata = new MediaMetadata({
-  //         title: "Komorebi",
-  //         artist: "Anitek",
-  //         album: "MainStay",
-  //         artwork: [
-  //           {
-  //             src: "https://assets.codepen.io/4358584/1.300.jpg",
-  //             sizes: "96x96",
-  //             type: "image/png",
-  //           },
-  //           {
-  //             src: "https://assets.codepen.io/4358584/1.300.jpg",
-  //             sizes: "128x128",
-  //             type: "image/png",
-  //           },
-  //           {
-  //             src: "https://assets.codepen.io/4358584/1.300.jpg",
-  //             sizes: "192x192",
-  //             type: "image/png",
-  //           },
-  //           {
-  //             src: "https://assets.codepen.io/4358584/1.300.jpg",
-  //             sizes: "256x256",
-  //             type: "image/png",
-  //           },
-  //           {
-  //             src: "https://assets.codepen.io/4358584/1.300.jpg",
-  //             sizes: "384x384",
-  //             type: "image/png",
-  //           },
-  //           {
-  //             src: "https://assets.codepen.io/4358584/1.300.jpg",
-  //             sizes: "512x512",
-  //             type: "image/png",
-  //           },
-  //         ],
-  //       })
-  //       navigator.mediaSession.setActionHandler("play", () => {
-  //         if (playState === "play") {
-  //           audio.play()
-  //           playAnimation.playSegments([14, 27], true)
-  //           requestAnimationFrame(whilePlaying)
-  //           playState = "pause"
-  //         } else {
-  //           audio.pause()
-  //           playAnimation.playSegments([0, 14], true)
-  //           cancelAnimationFrame(raf)
-  //           playState = "play"
-  //         }
-  //       })
-  //       navigator.mediaSession.setActionHandler("pause", () => {
-  //         if (playState === "play") {
-  //           audio.play()
-  //           playAnimation.playSegments([14, 27], true)
-  //           requestAnimationFrame(whilePlaying)
-  //           playState = "pause"
-  //         } else {
-  //           audio.pause()
-  //           playAnimation.playSegments([0, 14], true)
-  //           cancelAnimationFrame(raf)
-  //           playState = "play"
-  //         }
-  //       })
-  //       navigator.mediaSession.setActionHandler("seekbackward", (details) => {
-  //         audio.currentTime = audio.currentTime - (details.seekOffset || 10)
-  //       })
-  //       navigator.mediaSession.setActionHandler("seekforward", (details) => {
-  //         audio.currentTime = audio.currentTime + (details.seekOffset || 10)
-  //       })
-  //       navigator.mediaSession.setActionHandler("seekto", (details) => {
-  //         if (details.fastSeek && "fastSeek" in audio) {
-  //           audio.fastSeek(details.seekTime)
-  //           return
-  //         }
-  //         audio.currentTime = details.seekTime
-  //       })
-  //       navigator.mediaSession.setActionHandler("stop", () => {
-  //         audio.currentTime = 0
-  //         seekSlider.value = 0
-  //         audioPlayerContainer.style.setProperty("--seek-before-width", "0%")
-  //         currentTimeContainer.textContent = "0:00"
-  //         if (playState === "pause") {
-  //           playAnimation.playSegments([0, 14], true)
-  //           cancelAnimationFrame(raf)
-  //           playState = "play"
-  //         }
-  //       })
-  //     }
-  //   }
-  //   customElements.define("audio-player", AudioPlayer)
+export const init = () => {
+  ;[...audioPlayerEls].forEach((audioPlayerEl) => {
+    const {
+      audioEl,
+      playBtnEl,
+      pauseBtnEl,
+      currentTimeEl,
+      durationEl,
+      seekSliderEl,
+      fowardBtnEl,
+      rewindBtnEl,
+      volumeSliderEl,
+      volumnDisplayEl,
+      muteBtnEl,
+      playbackSpeedEl,
+    } = getQuerySelectors(audioPlayerEl)
+
+    let rAF: number
+
+    // *** DOM UPDATE FUNCTIONS *** //
+    /**
+     * Update the play button state
+     */
+    const updatePlayBtnState = () => {
+      const currentPlayState = audioPlayerEl!.dataset.playing
+      const updatedPlayState = currentPlayState === "true" ? "false" : "true"
+      audioPlayerEl!.dataset.playing = updatedPlayState
+    }
+
+    /**
+     * Update the mute button state
+     */
+    const updateMuteBtnState = () => {
+      const currentMuteState = audioPlayerEl!.dataset.muted
+      const updatedMuteState = currentMuteState === "true" ? "false" : "true"
+      audioPlayerEl!.dataset.muted = updatedMuteState
+    }
+    // * ====================================== * //
+    // * ====================================== * //
+
+    // *** UTIL FUNCTIONS *** //
+    /**
+     * While playing, update the seek slider value and the current time
+     */
+    const whilePlaying = () => {
+      // Get the current time in seconds
+      seekSliderEl.value = Math.floor(audioEl.currentTime).toString()
+
+      // Update the current time
+      currentTimeEl.textContent = convertTime(
+        Number(seekSliderEl.value),
+      ).toString()
+
+      // Update the seek before width
+      audioPlayerEl.style.setProperty(
+        "--seek-before-width",
+        `${(Number(seekSliderEl.value) / Number(seekSliderEl.max)) * 100}%`,
+      )
+
+      // Update the buffered amount display
+      displayBufferedAmount()
+
+      // Call this function again when the browser is ready
+      rAF = requestAnimationFrame(whilePlaying)
+
+      // Once the audio has finished playing, reset the player
+      if (audioEl.currentTime === audioEl.duration) {
+        resetPlayer()
+      }
+    }
+
+    /**
+     * Get the buffered amount and update the CSS variable
+     */
+    const displayBufferedAmount = () => {
+      console.log("audioEl.buffered ==>", audioEl.buffered)
+
+      const bufferedAmount =
+        audioEl.buffered.length > 0
+          ? Math.floor(audioEl.buffered.end(audioEl.buffered.length - 1))
+          : 0
+
+      audioPlayerEl.style.setProperty(
+        "--buffered-width",
+        `${(bufferedAmount / Number(seekSliderEl!.max)) * 100}%`,
+      )
+    }
+
+    /**
+     * Reset the player to the initial state
+     */
+    const resetPlayer = () => {
+      cancelAnimationFrame(rAF)
+      audioEl.pause()
+      audioPlayerEl.dataset.playing = "false"
+      audioEl.currentTime = 0
+      seekSliderEl.value = "0"
+      audioPlayerEl.style.setProperty("--seek-before-width", "0%")
+    }
+    // * ====================================== * //
+    // * ====================================== * //
+
+    // *** EVENT HANDLERS *** //
+    const handleSkipForward = () => {
+      audioEl.currentTime += 30
+    }
+    const handleSkipReverse = () => {
+      audioEl.currentTime -= 30
+    }
+
+    /**
+     * Hande the play button click
+     * Update the play button state and play the audio
+     */
+    const handlePlay = () => {
+      updatePlayBtnState()
+      audioEl.play()
+      requestAnimationFrame(whilePlaying)
+    }
+
+    /**
+     * Handle the pause button click
+     * Update the play button state and pause the audio
+     */
+    const handlePause = () => {
+      updatePlayBtnState()
+      audioEl.pause()
+      cancelAnimationFrame(rAF)
+    }
+
+    /**
+     * Handle the mute button click
+     * Update the audio muted state and the mute button state
+     */
+    const handleMute = () => {
+      updateMuteBtnState()
+      audioEl.muted = !audioEl.muted
+    }
+
+    /**
+     * On audio load, update the duration and the seek slider max value
+     */
+    const handleAudioLoad = () => {
+      const duration = audioEl.duration
+      durationEl!.textContent = convertTime(duration)
+      seekSliderEl!.max = Math.floor(duration).toString()
+      displayBufferedAmount()
+    }
+
+    /**
+     * On Seek slider value change, update the currentTime
+     * This triggers while the user is moving the slider
+     *
+     * This will update the time display without affecting the audio
+     */
+    const handleUpdateCurrentTime = () => {
+      currentTimeEl.textContent = convertTime(Number(seekSliderEl.value))
+      if (!audioEl.paused) {
+        cancelAnimationFrame(rAF)
+      }
+    }
+
+    /**
+     * On Seek slider value change, update the currentTime
+     * This only triggers after the user stops moving the slider
+     *
+     * This will update the audio play position
+     */
+    const handleSeekSliderChange = () => {
+      audioEl.currentTime = Number(seekSliderEl.value)
+      if (!audioEl.paused) {
+        requestAnimationFrame(whilePlaying)
+      }
+    }
+
+    /**
+     * Update the audio volume and the display of the audio volume
+     * @param e Event
+     */
+    const handleVolumeChange = (e: Event) => {
+      const value = (e.target as HTMLInputElement).value
+      volumnDisplayEl.textContent = value
+      audioEl.volume = Number(value) / 100
+    }
+
+    /**
+     * Update the audio playback speed
+     * @param e Event
+     */
+    const handlePlaybackSpeedChange = (e: Event) => {
+      audioEl.playbackRate = Number((e.target as HTMLSelectElement).value)
+    }
+    // * ====================================== * //
+    // * ====================================== * //
+
+    // *** REGISTER EVENTS LISTENERS *** //
+    playBtnEl.addEventListener("click", handlePlay)
+    pauseBtnEl.addEventListener("click", handlePause)
+    seekSliderEl.addEventListener("input", handleUpdateCurrentTime)
+    seekSliderEl.addEventListener("change", handleSeekSliderChange)
+    fowardBtnEl.addEventListener("click", handleSkipForward)
+    rewindBtnEl.addEventListener("click", handleSkipReverse)
+    volumeSliderEl.addEventListener("input", handleVolumeChange)
+    muteBtnEl.addEventListener("click", handleMute)
+    playbackSpeedEl.addEventListener("change", handlePlaybackSpeedChange)
+    // TODO figure out how check if the audio is being controlled by another source
+    // audioEl.addEventListener("playing", handlePlayEvent)
+    // audioEl.addEventListener("pause", handlePauseEvent)
+
+    // If the audio element is already loaded, else add a listener
+    if (audioEl.readyState > 0) {
+      handleAudioLoad()
+    } else {
+      audioEl.addEventListener("loadedmetadata", handleAudioLoad)
+    }
+  })
 }

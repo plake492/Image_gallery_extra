@@ -17,9 +17,10 @@ $font-list: (
   }
 }
 
-@import "./buttons";
+// @import "./buttons";
 @import "./grid-bg";
 @import "./img-gallery";
+@import "./audio";
 
 :root {
   --primary-font: "Comfortaa", sans-serif;
@@ -50,9 +51,13 @@ section {
     rgba(66, 23, 186, 0.6) 75%
   );
   overflow: hidden;
-  margin-bottom: $space-xl;
+
+  &:not(:last-child) {
+    margin-bottom: $space-xl;
+  }
 }
 
-main {
-  padding: $space-xl 0;
+footer {
+  background-color: #222;
+  color: #ddd;
 }

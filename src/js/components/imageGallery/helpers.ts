@@ -1,7 +1,13 @@
 import { ImgRef } from "@customTypes/types"
 import { imageList } from "@lib/images"
+import { cn } from "./querySelectors"
 
-const createPictureEl = (img: any, query?: string | null | undefined) => {
+/**
+ * Generates a pitcure elenment with the source elements nested inside
+ * @param img The image data
+ * @returns HTMLPictureElement
+ */
+const createPictureEl = (img: any) => {
   const pictureEl = document.createElement("picture")
 
   img.forEach((imgSrc: any) => {
@@ -10,11 +16,10 @@ const createPictureEl = (img: any, query?: string | null | undefined) => {
     for (const [key, value] of Object.entries(imgSrc)) {
       sourceEl.setAttribute(key, value as string)
     }
-    if (query) {
-      sourceEl.media = `(max-width: ${query}px)`
-    }
+    // TODO Add options for media queries if possible
     pictureEl.appendChild(sourceEl)
   })
+
   return pictureEl
 }
 
@@ -30,7 +35,7 @@ export const generateImages = async (): Promise<HTMLDivElement[]> => {
       )
 
       const imgWrapper = document.createElement("div")
-      imgWrapper.classList.add("img-wrapper", "img-thumb-wrapper")
+      imgWrapper.classList.add(cn("thumbnail"))
 
       const picutureEl = createPictureEl(img)
       const imgEl = document.createElement("img")
@@ -91,4 +96,27 @@ export const generateMainImg = async (
   return aEl
 }
 
-export const generateMainImgOverlay = async () => {}
+export const generateMainImgOverlay = (title: string, description: string) => {
+  const overlayEl = document.createElement("div")
+  overlayEl.classList.add(cn("main-image-overlay"))
+  const overlayTitleEl = document.createElement("div")
+  overlayTitleEl.classList.add(cn("main-image-overlay-content"), "title")
+  const overlayTitleTextEl = document.createElement("p")
+  overlayTitleTextEl.textContent = title
+  overlayTitleEl.appendChild(overlayTitleTextEl)
+  const overlayDescriptionEl = document.createElement("div")
+  overlayDescriptionEl.classList.add(
+    cn("main-image-overlay-content"),
+    "description",
+  )
+  const overlayDescriptionTextEl = document.createElement("p")
+  overlayDescriptionTextEl.textContent = description
+  const overlayLightboxBtnEl = document.createElement("button")
+  overlayLightboxBtnEl.classList.add(cn("lightbox-button"), "btn")
+  overlayLightboxBtnEl.textContent = "Expand"
+  overlayDescriptionEl.appendChild(overlayDescriptionTextEl)
+  overlayDescriptionEl.appendChild(overlayLightboxBtnEl)
+  overlayEl.appendChild(overlayTitleEl)
+  overlayEl.appendChild(overlayDescriptionEl)
+  return { overlayEl, overlayLightboxBtnEl }
+}
