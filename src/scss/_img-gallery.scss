@@ -1,6 +1,11 @@
 $ease: cubic-bezier(0.51, 0.92, 0.24, 1.03);
 
 .image-gallery {
+  * * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
   .btn {
     color: #000;
     background-color: white;
@@ -67,9 +72,55 @@ $ease: cubic-bezier(0.51, 0.92, 0.24, 1.03);
     justify-content: space-between;
     font-weight: 300;
     transition: all 0.5s $ease;
-    opacity: 0;
+    opacity: 1;
     z-index: 2;
     cursor: grab;
+
+    // &:before,
+    // &:after {
+    //   content: "";
+    //   filter: brightness(1) invert(1);
+    //   background-size: 48px;
+    //   background-repeat: no-repeat;
+    //   background-position-y: center;
+    //   background-position-x: center;
+    //   position: absolute;
+    //   display: grid;
+    //   place-content: center;
+    //   top: 0;
+    //   width: 10%;
+    //   height: 100%;
+    //   background-color: rgba(255, 255, 255, 0.4);
+    //   z-index: -1;
+    // }
+
+    // &:before {
+    //   background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTYuNjcgMGwyLjgzIDIuODI5LTkuMzM5IDkuMTc1IDkuMzM5IDkuMTY3LTIuODMgMi44MjktMTIuMTctMTEuOTk2eiIvPjwvc3ZnPg==");
+    //   left: 0;
+    //   transform: translateX(calc(var(--prev-position-indicators, 100%) * -1));
+    // }
+
+    // &:after {
+    //   background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNNy4zMyAyNGwtMi44My0yLjgyOSA5LjMzOS05LjE3NS05LjMzOS05LjE2NyAyLjgzLTIuODI5IDEyLjE3IDExLjk5NnoiLz48L3N2Zz4=");
+    //   right: 0;
+    //   transform: translateX(var(--next-position-indicators, 100%));
+    // }
+
+    // &.animate {
+    //   &:before,
+    //   &:after {
+    //     opacity: 0;
+    //     transition: all 0.5s $ease;
+    //   }
+    //   &:before {
+    //     transform: translateX(calc(var(--prev-position-indicators, 100%) * -1))
+    //       scale(1.5);
+    //   }
+
+    //   &:after {
+    //     transform: translateX(var(--next-position-indicators, 100%)) scale(1.5);
+    //   }
+    // }
   }
 
   &__main-image-overlay-content {

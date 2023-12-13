@@ -5,6 +5,7 @@ import "photoswipe/style.css"
 export const init = (
   picutureEl: HTMLAnchorElement,
   imgEl: HTMLImageElement,
+  gallery: string,
 ): PhotoSwipeLightbox => {
   picutureEl.href = imgEl.src
   picutureEl.dataset.pswpWidth = imgEl.naturalWidth.toString()
@@ -14,7 +15,7 @@ export const init = (
 
   const lightbox = new PhotoSwipeLightbox({
     // may select multiple "galleries"
-    gallery: ".img-main-screen a",
+    gallery,
     // setup PhotoSwipe Core dynamic import
     pswpModule: () => import("photoswipe"),
   })

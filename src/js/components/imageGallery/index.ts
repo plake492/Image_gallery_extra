@@ -3,13 +3,14 @@ import {
   generateMainImg,
   generateMainImgOverlay,
 } from "./helpers"
-import { init as initPhotoSwipe } from "./photoSwipe"
+import { init as initPhotoSwipe } from "../../utils/photoSwipe"
 import { GalleryState } from "./types"
 import { imageList } from "@lib/images"
 import { setState } from "@utils/state"
 import { wait } from "@utils/index"
 import { eventQueue } from "@utils/eventQueue"
 import { imageGalleryEls, getQuerySelectors } from "./querySelectors"
+import { grabEvents } from "@utils/grabEvents"
 
 /**
  * Initialize the image gallery
@@ -26,12 +27,23 @@ export const imageGallery = async (): Promise<void> => {
 
       const animationDuration = 500
       const deltaVelocity = 40
-      const dragVelocity = 40
       const touchVelocity = 60
-
       // An event queue to handle events that are triggered during animation
       const { runEventQueue, addToEventQueue } = eventQueue(2)
 
+      // *** HOOKS *** //
+      // Register Grab events for the main image
+      const { state: grabState, updateState: updateGrabState } = grabEvents({
+        target: mainImgEl,
+        listenerTarget: imageGalleryEl,
+        dragVelocity: 40,
+        onDragRight: () => navButtonEls[1].click(),
+        onDragLeft: () => navButtonEls[0].click(),
+        hasExternalPreventMouseMove: true,
+      })
+
+      // * ====================================== * //
+      // * ====================================== * //
       // *** STATE MANAGMENT *** //
       const stateActions = async (key: string, value: any) => {
         switch (key) {
@@ -46,12 +58,6 @@ export const imageGallery = async (): Promise<void> => {
               setCurrentImageNumber()
               highlightActiveThumb()
             }
-            break
-
-          case "isMouseDown":
-            // Add or remove the mousemove event listener based on the mousedown state
-            const method = value ? "add" : "remove"
-            mainImgEl[`${method}EventListener`]("mousemove", handleMousemove)
             break
         }
       }
@@ -78,11 +84,7 @@ export const imageGallery = async (): Promise<void> => {
         },
       )
 
-      const mouseState = setState({
-        mouseDownX: 0,
-      })
-
-      const tocuhState = setState({
+      const tocuhState = setState<{ touchstartX: number; touchendX: number }>({
         touchstartX: 0,
         touchendX: 0,
       })
@@ -94,7 +96,7 @@ export const imageGallery = async (): Promise<void> => {
       /**
        * Update the main image
        */
-      const updateMainImg = async () => {
+      const updateMainImg = async (): Promise<void> => {
         const {
           currentMainImgEl: outgoingPicture,
           nextDir,
@@ -117,16 +119,21 @@ export const imageGallery = async (): Promise<void> => {
           // After the animation is finished, remove the element from the DOM
           mainImgEl.removeChild(outgoingPicture as Node)
         }
-        // Reset the animation state
+
         state.isAnmiating = false
+
+        // ? Reset any animation states that prevent mutliple actions from being added to the event queue
+
         // Check if the animation was triggered by a touch event
         if (state.isTouchAnimation) {
           state.isTouchAnimation = false
         }
-        // Check if the animation was triggered by a mouse event
-        if (state.isMouseAnimation) {
-          state.isMouseAnimation = false
+
+        // Check if the animation was triggered by a mouse even
+        if (grabState.extrenalPreventMouseMove) {
+          updateGrabState("extrenalPreventMouseMove", false)
         }
+
         // Update the overlay content
         updateMainImgOverlayText()
         // Run the event queue
@@ -152,7 +159,7 @@ export const imageGallery = async (): Promise<void> => {
       /**
        * Handle Loading the new main image
        */
-      const loadMainImage = async () => {
+      const loadMainImage = async (): Promise<void> => {
         const { currentImageIndex, nextDir } = state
         // Grab first image data
         const imgData = imageList[currentImageIndex]
@@ -169,7 +176,11 @@ export const imageGallery = async (): Promise<void> => {
         // Wait for the image to load
         await imgEl.decode()
         // Initialize the lightbox
-        state.lightBoxInstance = initPhotoSwipe(anchorEl, imgEl)
+        state.lightBoxInstance = initPhotoSwipe(
+          anchorEl,
+          imgEl,
+          ".img-main-screen a",
+        )
         // Remove the fade-in class to trigger the enter animation
         imgEl.classList.remove(`fade-in-${nextDir}`)
       }
@@ -178,7 +189,9 @@ export const imageGallery = async (): Promise<void> => {
        * Load the thumbnail image
        * @param imgWrapper the img wrapper element
        */
-      const generateThumbImg = async (imgWrapper: HTMLDivElement) => {
+      const generateThumbImg = async (
+        imgWrapper: HTMLDivElement,
+      ): Promise<void> => {
         const imgEl = imgWrapper.querySelector("img") as HTMLImageElement
         // Hide the image before load
         imgEl.style.opacity = "0"
@@ -204,13 +217,11 @@ export const imageGallery = async (): Promise<void> => {
           title,
           description,
         )
-
         if (state.currentOverlayEl)
           mainImgEl.removeChild(state.currentOverlayEl)
-
         state.currentOverlayEl = overlayEl
+        updateGrabState("target", overlayEl)
         mainImgEl.prepend(overlayEl)
-
         overlayLightboxBtnEl.addEventListener("click", handleOpenLightBox)
       }
 
@@ -241,6 +252,7 @@ export const imageGallery = async (): Promise<void> => {
        * @param el active thumb element
        */
       const scrollToThumbnail = (el: HTMLDivElement): void => {
+        if (!el) return
         const scrollAmount = el.offsetLeft - thumbnailWrapperEl.offsetWidth / 2
 
         thumbnailWrapperEl.scrollTo({
@@ -252,7 +264,7 @@ export const imageGallery = async (): Promise<void> => {
       /**
        * Handle touch events on the x axis
        */
-      const handleGesture = () => {
+      const handleGesture = (): void => {
         const touchGesture = Math.abs(
           tocuhState.touchendX - tocuhState.touchstartX,
         )
@@ -271,7 +283,7 @@ export const imageGallery = async (): Promise<void> => {
       /**
        * Set the animation duration css variable
        */
-      const setAnimationCssVar = () => {
+      const setAnimationCssVar = (): void => {
         mainImgEl.style.setProperty(
           "--animation-duration",
           `${animationDuration}ms`,
@@ -281,7 +293,7 @@ export const imageGallery = async (): Promise<void> => {
       /**
        * Initialize the image gallery
        */
-      const init = async () => {
+      const init = async (): Promise<void> => {
         setAnimationCssVar()
         await loadMainImage()
         updateMainImgOverlayText()
@@ -294,7 +306,7 @@ export const imageGallery = async (): Promise<void> => {
       /**
        * Hnadle the click event on the expand button
        */
-      const handleOpenLightBox = () => {
+      const handleOpenLightBox = (): void => {
         state.lightBoxInstance!.loadAndOpen(0, {
           gallery: document.querySelector(
             ".image-gallery__main-image a",
@@ -367,14 +379,14 @@ export const imageGallery = async (): Promise<void> => {
        * Set state on touch start
        * @param e TouchEvent
        */
-      const touchstartEvent = (e: TouchEvent) => {
+      const touchstartEvent = (e: TouchEvent): void => {
         tocuhState.touchstartX = e.changedTouches[0].screenX
       }
       /**
        * Set state on touch end and determine if the user swiped left or right
        * @param e TouchEvent
        */
-      const touchendEvent = (e: TouchEvent) => {
+      const touchendEvent = (e: TouchEvent): void => {
         tocuhState.touchendX = e.changedTouches[0].screenX
         handleGesture()
       }
@@ -389,9 +401,11 @@ export const imageGallery = async (): Promise<void> => {
 
         if (
           element.isEqualNode(mainImgEl) ||
-          element.isEqualNode(state.currentOverlayEl)
+          element.isEqualNode(state.currentOverlayEl) ||
+          mainImgEl.contains(element)
         ) {
           const deltaX = (<WheelEvent>e).deltaX
+
           // Left scroll
           if (deltaX < deltaVelocity * -1) {
             state.isTouchAnimation = true
@@ -404,54 +418,6 @@ export const imageGallery = async (): Promise<void> => {
             navButtonEls[1].click()
           }
         }
-      }
-
-      /**
-       * Handle mouse move events to trigger the prev and next buttons
-       * @param e Event
-       */
-      const handleMousemove = (e: Event): void => {
-        if (state.isMouseAnimation || state.hasMouseAnimated) return
-        // Get x coordinate of the mouse
-        const xCoord = (<MouseEvent>e).clientX
-        // Calculate the distance the mouse has moved
-        const deltaX = xCoord - mouseState.mouseDownX
-        // If the distance is greater than the dragVelocity, animate to the prev image
-        if (deltaX > dragVelocity) {
-          state.isMouseAnimation = true
-          state.hasMouseAnimated = true
-          navButtonEls[0].click()
-        }
-        // If the distance is less than the -dragVelocity, animate to the next image
-        if (deltaX < dragVelocity * -1) {
-          state.isMouseAnimation = true
-          state.hasMouseAnimated = true
-          navButtonEls[1].click()
-        }
-      }
-      /**
-       * Set state on mouse down
-       * @param e MouseEvent
-       */
-      const handleMouseDown = (e: MouseEvent) => {
-        const el = (<MouseEvent>e).target as HTMLElement
-
-        if (
-          el.isEqualNode(mainImgEl) ||
-          el.isEqualNode(state.currentOverlayEl)
-        ) {
-          state.isMouseDown = true
-          mouseState.mouseDownX = e.clientX
-          mainImgEl.style.cursor = "grabbing"
-        }
-      }
-      /**
-       * Set state on mouse up
-       */
-      const handleMouseUp = () => {
-        state.isMouseDown = false
-        mainImgEl.style.cursor = "auto"
-        state.hasMouseAnimated = false
       }
 
       // * ====================================== * //
@@ -475,8 +441,6 @@ export const imageGallery = async (): Promise<void> => {
 
       mainImgEl.addEventListener("touchstart", touchstartEvent, false)
       mainImgEl.addEventListener("touchend", touchendEvent, false)
-      window.addEventListener("mousedown", handleMouseDown)
-      window.addEventListener("mouseup", handleMouseUp)
       window.addEventListener("mousewheel", handleMouseWheelEvent)
 
       // * ====================================== * //

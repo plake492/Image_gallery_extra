@@ -16,4 +16,5 @@ export interface GalleryState {
   isTouchAnimation: boolean
   isMouseDown: boolean
   hasMouseAnimated: boolean
+  currentOverlayEl: HTMLDivElement | null
 }

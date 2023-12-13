@@ -17,10 +17,9 @@ $font-list: (
   }
 }
 
-// @import "./buttons";
+@import "./buttons";
 @import "./grid-bg";
 @import "./img-gallery";
-@import "./audio";
 
 :root {
   --primary-font: "Comfortaa", sans-serif;
